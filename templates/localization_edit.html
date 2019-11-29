@@ -1,0 +1,24 @@
+{% extends "admin/master.html" %}
+{#{% block title %}Редактирование перевода{% endblock %}#}
+
+{% block body %}
+<div class="container-fluid">
+    <form action="#" method="post">
+        <input type="hidden" name="key" value="{{ key }}">
+        <div class="imput-group mb-4">
+            <p>Ключ: {{ key }}</p>
+        </div>
+        {% for k, v in possible_translations.items() %}
+            <p>
+                <div class="input-group">
+                    <span class="input-group-addon" id="input{{ loop.index0 }}">Переклад{# {{ k }} #}</span>
+                    <textarea type="text" class="form-control" aria-describedby="input{{ loop.index0 }}" name="{{ k }}">{{ v }}</textarea>
+                </div>
+            </p>
+        {% endfor %}
+        <p>
+            <button type="submit" class="btn btn-primary">Зберегти</button>
+        </p>
+    </form>
+</div>
+{% endblock %}

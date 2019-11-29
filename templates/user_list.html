@@ -1,0 +1,22 @@
+{# my_list.html #}
+{# extends this template: #}
+{# [path to Python]\Envs\flaskadmin\Lib\site-packages\flask_admin\templates\bootstrap3\admin\model\list.html #}
+
+{% extends 'admin/model/list.html' %}
+{% block body %}
+    {{ super() }}
+{% endblock %}
+
+{% block list_row_actions %}
+    <form class="icon" method="POST" action="/load_predictions">
+        <input name="user_id" value="{{ row.user_id }}" type="hidden">
+        <button onclick="return confirm('Вы уверены, что хотите обновить прогнозы в БД?');" title="Загрузить прогнозы в БД">
+          <span class="glyphicon glyphicon-download"></span>
+        </button>
+    </form>
+    {{ super() }}
+
+    {# Trying to Add a Special Action #}
+    {# Icons you can use: http://getbootstrap.com/components/ #}
+
+{% endblock %}

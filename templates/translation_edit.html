@@ -1,0 +1,21 @@
+{% extends "admin_base.html" %}
+{% block title %}Редактирование перевода{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <br>
+    <form action="#" method="post">
+        <input type="hidden" name="key" value="{{ key }}">
+        <div class="form-group mb-4">
+            <p>Ключ: {{ key }}</p>
+        </div>
+        {% for k, v in possible_translations.items() %}
+            <div class="form-group">
+                <label for="input{{ loop.index0 }}">{{ k }}</label>
+                <input type="text" class="w-50" id="input{{ loop.index0 }}" name="{{ k }}" value="{{ v }}">
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+</div>
+{% endblock %}

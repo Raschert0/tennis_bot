@@ -1,0 +1,34 @@
+{# my_list.html #}
+{# extends this template: #}
+{# [path to Python]\Envs\flaskadmin\Lib\site-packages\flask_admin\templates\bootstrap3\admin\model\list.html #}
+
+{% extends 'admin/model/list.html' %}
+{% block body %}
+    {{ super() }}
+{% endblock %}
+
+{% block list_row_actions %}
+
+    {# Trying to Add a Special Action #}
+    {# Icons you can use: http://getbootstrap.com/components/ #}
+    <form class="icon" method="POST" action="/send/all">
+        <input name="id" value="{{ row.id }}" type="hidden">
+        <button onclick="return confirm('Вы уверены, что хотите всем это разослать?');" title="Разослать всем">
+          <span class="fa fa-ok glyphicon glyphicon-send"></span>
+        </button>
+    </form>
+    <form class="icon" method="POST" action="/send/paid">
+        <input name="id" value="{{ row.id }}" type="hidden">
+        <button onclick="return confirm('Вы уверены, что хотите это разослать платным подписчикам?');" title="Разослать платным подписчикам">
+          <span class="fa fa-ok glyphicon glyphicon-star"></span>
+        </button>
+    </form>
+    <form class="icon" method="POST" action="/send/unpaid">
+        <input name="id" value="{{ row.id }}" type="hidden">
+        <button onclick="return confirm('Вы уверены, что хотите это разослать бесплатным подписчикам?');" title="Разослать бесплатным подписчикам">
+          <span class="fa fa-ok glyphicon glyphicon-star-empty"></span>
+        </button>
+    </form>
+    {{ super() }}
+
+{% endblock %}

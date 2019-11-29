@@ -1,0 +1,18 @@
+{# my_list.html #}
+{# extends this template: #}
+{# [path to Python]\Envs\flaskadmin\Lib\site-packages\flask_admin\templates\bootstrap3\admin\model\list.html #}
+
+{% extends 'admin/model/list.html' %}
+{% block body %}
+    {{ super() }}
+{% endblock %}
+
+{% block list_row_actions %}
+    <form class="icon" method="POST" action="/download_event_users">
+        <input name="id" value="{{ row.id }}" type="hidden">
+        <button  title="Скачать">
+          <span class="glyphicon glyphicon-download"></span>
+        </button>
+    </form>
+    {{ super() }}
+{% endblock %}

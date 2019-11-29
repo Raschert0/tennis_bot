@@ -1,0 +1,22 @@
+{# my_list.html #}
+{# extends this template: #}
+{# [path to Python]\Envs\flaskadmin\Lib\site-packages\flask_admin\templates\bootstrap3\admin\model\list.html #}
+
+{% extends 'admin/model/list.html' %}
+{% block body %}
+    {{ super() }}
+{% endblock %}
+
+{% block list_row_actions %}
+    <form class="icon" method="POST" action="/add_capper">
+        <input name="username" value="{{ row.username }}" type="hidden">
+        <button onclick="return confirm('Вы уверены, что хотите добавить этого каппера?');" title="Добавить каппера">
+          <span class="glyphicon glyphicon-plus"></span>
+        </button>
+    </form>
+    {{ super() }}
+
+    {# Trying to Add a Special Action #}
+    {# Icons you can use: http://getbootstrap.com/components/ #}
+
+{% endblock %}

@@ -1,0 +1,112 @@
+from flask import Blueprint, redirect, url_for, request, render_template, flash, send_file, Markup
+from flask_admin.contrib.mongoengine import ModelView
+from flask_admin import Admin, BaseView, expose
+from flask_admin.form import rules
+from flask_login import LoginManager, current_user, login_user, logout_user
+from models import User, Texts, Administrator
+from admin.forms import LoginForm
+import admin.methods as methods
+from threading import Thread
+from localization.views import LocalizationView
+
+admin_blueprint = Blueprint('admin_bp', __name__)
+login = LoginManager()
+
+@login.user_loader
+def load_user(user_id):
+    return Administrator.objects(id=user_id).first()
+
+
+@admin_blueprint.route('/')
+def index():
+    return redirect(url_for('admin.index'))
+
+
+# @admin_blueprint.route('/send', methods=['POST'])
+# def handle_sending():
+#     form = request.form
+#     message = Mailing.objects(id=form['id']).first()
+#     Thread(target=methods.send_messages, args=(message,)).start()
+#     flash('Отправлено', category='success')
+#     return redirect('/admin/mailing')
+
+
+# @admin_blueprint.route('/send_message', methods=['POST'])
+# def handle_user_sending():
+#     form = request.form
+#     user = User.objects(user_id=form['user_id']).first()
+#     bot_handler.bot.send_message(user.user_id, form['message'])
+#     flash('Отправлено', category='success')
+#
+#     if 'msg' in request.form:
+#         return redirect('/admin/feedback')
+#     else:
+#         return redirect('/admin/user')
+
+
+def validate_login(user, form):
+    if user is None:
+        return False
+
+    if user.password == form.password.data:
+        return True
+    else:
+        return False
+
+
+
+@admin_blueprint.route('/login', methods=['GET', 'POST'])
+def handle_login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = Administrator.objects(username=form.username.data).first()
+
+        if validate_login(user, form):
+            login_user(user)
+            flash('Logged in', category='success')
+            return redirect(url_for('admin.index'))
+        else:
+            flash('Wrong username or password', category='danger')
+
+    return render_template('login.html', form=form)
+
+
+@admin_blueprint.route('/logout')
+def handle_logout():
+    logout_user()
+    return redirect(url_for('admin.index'))
+
+
+class MyUserView(ModelView):
+    # list_template = 'user_list.html'
+
+    column_searchable_list = ['username', 'first_name', 'last_name']
+
+    # can_delete = False
+
+    can_set_page_size = True
+
+    column_filters = ['username', 'first_name', 'last_name']
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+class MyAdminView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+class MyTextsView(ModelView):
+    can_create = False
+    can_delete = False
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+admin = Admin(template_mode='bootstrap3')
+admin.add_view(MyUserView(User, name='Пользователи'))
+admin.add_view(MyAdminView(Administrator, name='Админы', category='Настройки'))
+admin.add_view(MyTextsView(Texts, name='Тексты', category='Настройки'))
+admin.add_view(LocalizationView(name="Localization", endpoint="localization"))
