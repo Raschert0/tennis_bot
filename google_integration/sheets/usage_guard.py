@@ -13,6 +13,7 @@ class UsageGuard():
     def __selfcheck(self):
         t = datetime.now()
         delta = t - self.__latest_selfcheck
+        self.__latest_selfcheck = t
         s = delta.total_seconds()
         self.__get_limits = min(
             self.__gets_per_100_seconds / 100 * 60,

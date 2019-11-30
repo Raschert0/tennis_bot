@@ -14,12 +14,13 @@ class RDR(IntEnum):
 class COMPETITOR_STATUS(IntEnum):
     UNATHORIZED = 0
     ACTIVE = 1
-    CHALLENGE_WAITING = 2
-    CHALLENGE = 3
-    PASSIVE = 4
-    VACATION = 5
-    INJUIRY = 6
-    INACTIVE = 7
+    CHALLENGE_INITIATED = 2  # When user sent challenge request to someone else
+    CHALLENGE_NEED_RESPONSE = 3  # When user is answering to challenge request
+    CHALLENGE = 4
+    PASSIVE = 5
+    VACATION = 6
+    INJUIRY = 7
+    INACTIVE = 8
 
 
 class RESULT(IntEnum):

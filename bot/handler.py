@@ -1,14 +1,16 @@
 from models import User
 from logger_settings import logger
 from bot.states import RET
-from bot.states.start import StartState
-#from bot.states.menu import MenuState
 from localization.translations import get_translation_for
 from localization.translations import create_translation
 from helpers import user_last_state
 from telebot.types import Message, CallbackQuery, User as TGUser
 import telebot
 import config
+
+from bot.states.start import StartState
+from bot.states.authentication import AuthenticationState
+from bot.states.menu import MenuState
 
 
 class BotHandlers(object):
@@ -19,7 +21,8 @@ class BotHandlers(object):
         self.__start_state = 'StartState'
         self.__register_states(
             StartState,
-            #MenuState,
+            MenuState,
+            AuthenticationState,
         )
         self.__start_handling()
 
@@ -146,7 +149,7 @@ class BotHandlers(object):
         if ret_tuple[0] == RET.GO_TO_STATE:
             self.__send_user_to_state(ret_tuple[2], ret_tuple[3], ret_tuple[1])
         elif ret_tuple[0] == RET.ANSWER_CALLBACK:
-            self.bot.answer_callback_query(ret_tuple[2].id)
+            self.bot.answer_callback_query(ret_tuple[2].id, text=ret_tuple[1])
         elif ret_tuple[0] == RET.ANSWER_AND_GO_TO_STATE:
             self.bot.answer_callback_query(ret_tuple[2].id)
             self.__send_user_to_state(ret_tuple[2].message, ret_tuple[3], ret_tuple[1])

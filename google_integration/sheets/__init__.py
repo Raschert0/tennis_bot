@@ -4,7 +4,6 @@ import os.path
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
-from bot.settings_interface import get_config_document
 
 # If modifying these scopes, delete the file token.pickle.
 __DIR = os.path.join(os.path.dirname(__file__), '..')
@@ -12,12 +11,6 @@ __DIR = os.path.join(os.path.dirname(__file__), '..')
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SERVICE_ACCOUNT_FILE = f'{__DIR}/credentials/quickstart.json'
 TOKEN_FILE = f'{__DIR}/credentials/token.pickle'
-
-__config = get_config_document()
-
-# The ID and range of a sample spreadsheet.
-SPREADSHEET_ID = __config.spreadsheet_id
-RANGE_NAME = f'{__config.spreadsheet_users_sheet}!A1:H'
 
 # The file token.pickle stores the user's access and refresh tokens, and is
 # created automatically when the authorization flow completes for the first

@@ -9,7 +9,32 @@ LANGUAGES_DICTIONARY = {
         'use_keyboard_msg': 'Використовуйте, будь ласка, віртуальну клавіатуру!',
         'message_type_not_supported_msg': 'Цей тип повідомлень не підтримується',
 
-        'level_str': 'Рівень',
+        'authentication_msg': 'Вітаємо в боті.\n'
+                              'Вам необхідно пройти процедуру аутентифікації. Просто оберіть себе із списку нижче.\n'
+                              'Якщо не можете себе знайти, зв’яжіться, будь ласка, із адміністрацією.',
+        'authentication_cannot_find_competitors_msg': 'Не вдалося знайти жодного неавторизованого учасника.\n'
+                                                      'Для вирішення цієї проблеми зв’яжіться, будь ласка, з адміністрацією.',
+        'authentication_specified_competitor_not_found': 'Такого учасника не знайдено',
+
+        'competitor_record_vanished_msg': 'Не вдалося знайти інформацію про гравця. Необхідно знову пройти процедуру аутентифікації',
+
+        'menu_info_btn': 'Моя інформація',
+        'menu_create_challenge_btn': 'Створити челендж',
+        'menu_submit_challenge_results_btn': 'Зафіксувати результат челенджа',
+        'menu_cancel_challenge_btn': 'Скасувати челендж',
+        'menu_cancel_challenge_request_btn': 'Скасувати запит на челендж',
+        'menu_reply_to_challenge_request_btn': 'Відповісти на челендж',
+        'menu_go_to_vacation_btn': 'Піти у відпустку',
+        'menu_got_to_injuiry_btn': 'Взяти лікарняний',
+        'menu_end_vacation_btn': 'Закінчити відпустку',
+        'menu_end_injuiry_status_btn': 'Вийти з лікарняного',
+
+        'info_status_str': 'Статус',
+        'info_level_str': 'Рівень',
+        'info_matches_str': 'Матчів',
+        'info_wins_str': 'Перемог',
+        'info_losses_str': 'Поразок',
+        'info_performance_str': 'Performance',
     }
     #,
     #universal_lang: {

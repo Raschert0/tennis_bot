@@ -1,6 +1,5 @@
 from telebot import TeleBot
 from telebot.types import Message, CallbackQuery
-from bot.keyboards import get_base_keyboard
 from localization.translations import get_translation_for
 from models import User
 from enum import IntEnum
@@ -19,11 +18,14 @@ class BaseState(object):
     # needs_authentication = True
 
     def __init__(self):
-        self._buttons = {'back_btn': self.back_button}
-        self._base_keyboard = get_base_keyboard
+        # self._buttons = {'back_btn': self.back_button}
+        self._buttons = {}
+
+    def __base_keyboard(self, **kwargs):
+        return None
 
     def entry(self, message: Message, user: User, bot: TeleBot):
-        return RET.OK, 0, None, None
+        return RET.OK, None, None, None
 
     def process_message_with_buttons(self, message: Message, user: User, bot: TeleBot):
         # if self.authentication_required(user):
@@ -46,13 +48,13 @@ class BaseState(object):
     def process_message(self, message: Message, user: User, bot: TeleBot):
         bot.send_message(message.chat.id,
                          get_translation_for('use_keyboard_msg'),
-                         reply_markup=self._base_keyboard()
+                         reply_markup=self.__base_keyboard()
                          )
         return RET.OK, None, None, None
 
     def process_callback(self, callback:CallbackQuery, user, bot: TeleBot):
         bot.answer_callback_query(callback.id)
-        return RET.OK, 0, None, None
+        return RET.OK, None, None, None
 
     # Buttons
 
@@ -62,9 +64,7 @@ class BaseState(object):
             move_to = user.states.pop()
             user.save()
             return RET.GO_TO_STATE, move_to, message, user
-        if not user.associated_with:
-            return RET.GO_TO_STATE, 'AuthenticationState', message, user
-        return RET.GO_TO_STATE, 'MenuState', message, user
+        return RET.GO_TO_STATE, 'AuthenticationState', message, user
 
     def main_menu_btn(self, message: Message, user: User, bot: TeleBot):
-        return RET.GO_TO_STATE, 'MenuState', message, user
+        return RET.GO_TO_STATE, 'AuthenticationState', message, user

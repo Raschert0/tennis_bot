@@ -1,3 +1,32 @@
+import argparse
+
+args = None
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Tennis bot'
+    )
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        '-W',
+        '--web-server',
+        action='store_true',
+        help='run the web-server'
+    )
+    group.add_argument(
+        '-B',
+        '--bot',
+        action='store_true',
+        help='run bot in pooling mode'
+    )
+    group.add_argument(
+        '-H',
+        '--web-server-with-hooks',
+        action='store_true',
+        help='run both web-server and telegram bot'
+    )
+    args = parser.parse_args()
+
+
 from time import sleep
 from bot.views import bot_blueprint, bot_handler
 from admin.views import admin_blueprint, admin, login
@@ -7,7 +36,6 @@ from models import db
 from localization.translations import create_translation
 import secrets
 import telebot
-
 
 app = Flask(PROJECT_NAME)
 app.config['MONGODB_DB'] = PROJECT_NAME
@@ -24,14 +52,21 @@ from google_integration.sheets.users import UsersSheet
 UsersSheet.update_model()
 
 if __name__ == "__main__":
-    # bot_handler.bot.polling(none_stop=True)
-    app.run(debug=True, threaded=True)
-    # bot_handler.bot.remove_webhook()
-    # sleep(1)
-    # bot_handler.bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
-    #                             certificate=open(WEBHOOK_SSL_CERT, 'r'))
-    # app.run(host=WEBHOOK_LISTEN,
-    #         port=WEBHOOK_PORT,
-    #         ssl_context=(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV),
-    #         threaded=True
-    #         )
+    if not args:
+        raise ValueError("Args not found")
+
+    if args.bot:
+        bot_handler.bot.remove_webhook()
+        bot_handler.bot.polling(none_stop=True)
+    elif args.web_server:
+        app.run(debug=True)
+    elif args.web_server_with_hooks:
+        bot_handler.bot.remove_webhook()
+        sleep(1)
+        bot_handler.bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
+                                    certificate=open(WEBHOOK_SSL_CERT, 'r'))
+        app.run(host=WEBHOOK_LISTEN,
+                port=WEBHOOK_PORT,
+                ssl_context=(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV),
+                threaded=True
+                )
