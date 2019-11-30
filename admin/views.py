@@ -3,7 +3,7 @@ from flask_admin.contrib.mongoengine import ModelView
 from flask_admin import Admin, BaseView, expose
 from flask_admin.form import rules
 from flask_login import LoginManager, current_user, login_user, logout_user
-from models import User, Texts, Administrator
+from models import User, Administrator, Competitor
 from admin.forms import LoginForm
 import admin.methods as methods
 from threading import Thread
@@ -54,7 +54,6 @@ def validate_login(user, form):
         return False
 
 
-
 @admin_blueprint.route('/login', methods=['GET', 'POST'])
 def handle_login():
     form = LoginForm()
@@ -92,21 +91,33 @@ class MyUserView(ModelView):
         return current_user.is_authenticated
 
 
-class MyAdminView(ModelView):
+class CompetitorView(ModelView):
+
+    column_searchable_list = ['name', ]
+    can_set_page_size = True
+    column_filters = ['name', ]
+
+    column_formatters = {
+        'status': lambda v, c, m, p: Competitor.status_code_to_str_dict[m.status],
+        'previous_status': lambda v, c, m, p: Competitor.status_code_to_str_dict[m.previous_status],
+        'in_challenge_with': lambda v, c, m, p: m.check_opponent().name if m.check_opponent() else None
+    }
+    create_modal = True
+    edit_modal = True
+    column_exclude_list = ['legacy_number']
+    form_excluded_columns = ['previous_status', 'legacy_number']
+
     def is_accessible(self):
         return current_user.is_authenticated
 
 
-class MyTextsView(ModelView):
-    can_create = False
-    can_delete = False
-
+class MyAdminView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated
 
 
 admin = Admin(template_mode='bootstrap3')
 admin.add_view(MyUserView(User, name='Пользователи'))
+admin.add_view(CompetitorView(Competitor, name='Учасники'))
 admin.add_view(MyAdminView(Administrator, name='Админы', category='Настройки'))
-admin.add_view(MyTextsView(Texts, name='Тексты', category='Настройки'))
 admin.add_view(LocalizationView(name="Localization", endpoint="localization"))

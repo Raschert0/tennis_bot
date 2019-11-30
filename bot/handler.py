@@ -182,9 +182,9 @@ class BotHandlers(object):
         user.save()
         try:
             if current_state.has_entry:
-                self.__process_ret_code(current_state.entry(message, user, self.bot))
+                self.__process_ret_code(current_state.entry(message=message, user=user, bot=self.bot))
             else:
-                self.__process_ret_code(current_state.process_message_with_buttons(message, user, self.bot))
+                self.__process_ret_code(current_state.process_message_with_buttons(message=message, user=user, bot=self.bot))
         except:
             logger.exception(self.__get_state(user_last_state(user, 'Unknown state')))
 

@@ -1,6 +1,8 @@
 from flask_mongoengine import MongoEngine
 from flask_admin.model import typefmt
 from enum import IntEnum
+from mongoengine.errors import DoesNotExist
+from datetime import datetime
 
 
 db = MongoEngine()
@@ -11,8 +13,8 @@ class RDR(IntEnum):
     NULLIFY = 1
 
 
-class COMPETITOR_STATUS(IntEnum):
-    UNATHORIZED = 0
+class COMPETITOR_STATUS:
+    UNAUTHORIZED = 0
     ACTIVE = 1
     CHALLENGE_INITIATED = 2  # When user sent challenge request to someone else
     CHALLENGE_NEED_RESPONSE = 3  # When user is answering to challenge request
@@ -32,7 +34,7 @@ class RESULT(IntEnum):
 
 class Config(db.Document):
     config_id = db.StringField()
-    vacancy_time = db.IntField(default=14)
+    vacation_time = db.IntField(default=14)
     time_to_accept_challenge = db.IntField(default=3)
     time_to_play_challenge = db.IntField(default=10)
     challenge_play_reminder = db.IntField(default=3)
@@ -40,9 +42,11 @@ class Config(db.Document):
     spreadsheet_id = db.StringField(default='1TE6stp-x7z-O7Rp3Twtg5oJ8Ytmlx7TTqRgDZ5bx39k')
     spreadsheet_users_sheet = db.StringField(default='Игроки')
 
+    last_daily_check = db.DateTimeField(default=datetime.utcnow())
+
 
 class Competitor(db.Document):
-    status = db.IntField(required=True)
+    status = db.IntField(default=COMPETITOR_STATUS.UNAUTHORIZED)
     previous_status = db.IntField()
     name = db.StringField(required=True)
     level = db.IntField()
@@ -51,17 +55,44 @@ class Competitor(db.Document):
     losses = db.IntField(default=0)
     performance = db.IntField(default=0)
 
-    remaining_vacancy_time = db.IntField(required=True)
+    used_vacation_time = db.IntField(default=0)
+    vacation_started_at = db.DateTimeField()
     special_state_until = db.DateTimeField()
 
-    dismissed_challenges = db.IntField(default=0)
-    ignored_challenges = db.IntField(default=0)
+    challenges_dismissed_in_a_row = db.IntField(default=0)
+    challenges_ignored = db.IntField(default=0)
+
+    challenges_dismissed_total = db.IntField(default=0)
+    challenges_ignored_total = db.IntField(default=0)
 
     in_challenge_with = db.LazyReferenceField('self')
 
     legacy_number = db.StringField()
 
+    def check_opponent(self):
+        if not self.in_challenge_with:
+            return False
+        try:
+            return self.in_challenge_with.fetch()
+        except DoesNotExist:
+            self.in_challenge_with = None
+            self.save()
+            return False
+
     meta = {'strict': False}
+
+    status_code_to_str_dict = {
+        None: None,
+        COMPETITOR_STATUS.UNAUTHORIZED: 'Unauthorized',
+        COMPETITOR_STATUS.ACTIVE: 'Active',
+        COMPETITOR_STATUS.CHALLENGE_INITIATED: 'Challenged',
+        COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE: 'Challenged',
+        COMPETITOR_STATUS.CHALLENGE: 'Challenged',
+        COMPETITOR_STATUS.PASSIVE: 'Passive',
+        COMPETITOR_STATUS.VACATION: 'Vacation',
+        COMPETITOR_STATUS.INJUIRY: 'Injuiry',
+        COMPETITOR_STATUS.INACTIVE: 'Inactive'
+    }
 
 
 class User(db.Document):
@@ -76,6 +107,16 @@ class User(db.Document):
     is_blocked = db.BooleanField(default=False)
 
     associated_with = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
+
+    def check_association(self):
+        if not self.associated_with:
+            return False
+        try:
+            return self.associated_with.fetch()
+        except DoesNotExist:
+            self.associated_with = None
+            self.save()
+            return False
 
     meta = {'strict': False}
 
@@ -113,13 +154,6 @@ class Administrator(db.Document):
 
     def __unicode__(self):
         return self.username
-
-
-class Texts(db.Document):
-    meta = {'strict': False}
-
-    back_btn = db.StringField()
-    skip_btn = db.StringField()
 
 
 class Localization(db.Document):

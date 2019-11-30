@@ -7,18 +7,6 @@ from logger_settings import logger
 
 class UsersSheet:
 
-    status_code_to_str_dict = {
-        COMPETITOR_STATUS.UNATHORIZED: 'Unauthorized',
-        COMPETITOR_STATUS.ACTIVE: 'Active',
-        COMPETITOR_STATUS.CHALLENGE_INITIATED: 'Challenged',
-        COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE: 'Challenged',
-        COMPETITOR_STATUS.CHALLENGE: 'Challenged',
-        COMPETITOR_STATUS.PASSIVE: 'Passive',
-        COMPETITOR_STATUS.VACATION: 'Vacation',
-        COMPETITOR_STATUS.INJUIRY: 'Injuiry',
-        COMPETITOR_STATUS.INACTIVE: 'Inactive'
-    }
-
     @staticmethod
     def get_all_users():
         cfg = get_config_document()
@@ -49,13 +37,13 @@ class UsersSheet:
                     new_data = Competitor(
                         legacy_number=row[0],
                         name=row[1],
-                        status=COMPETITOR_STATUS.UNATHORIZED,
+                        status=COMPETITOR_STATUS.UNAUTHORIZED,
                         level=to_int(row[3], None),
                         matches=to_int(row[4]),
                         wins=to_int(row[5]),
                         losses=to_int(row[6]),
                         performance=to_int(row[7]),
-                        remaining_vacancy_time=cfg.vacancy_time
+                        used_vacancy_time=0
                     )
                     new_data.save()
                     new_data.reload()
@@ -82,7 +70,7 @@ class UsersSheet:
                 [
                     data.legacy_number,
                     data.name,
-                    UsersSheet.status_code_to_str_dict[data.status],
+                    Competitor.status_code_to_str_dict[data.status],
                     data.level or '',
                     data.matches,
                     data.wins,
@@ -105,7 +93,7 @@ class UsersSheet:
                     f'{cfg.spreadsheet_users_sheet}!C{row_number}',
                     values=[
                         [
-                            UsersSheet.status_code_to_str_dict[competitor.status],
+                            Competitor.status_code_to_str_dict[competitor.status],
                         ]
                     ]
                 )

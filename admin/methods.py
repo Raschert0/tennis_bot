@@ -1,5 +1,5 @@
 import telebot
-from models import User, Texts
+from models import User
 from time import sleep
 from telebot import types
 from datetime import datetime, timedelta, date

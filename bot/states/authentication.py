@@ -24,7 +24,7 @@ class AuthenticationState(BaseState):
             for c in pagination.items:
                 available_competitors_encoded_names.append(
                     [
-                        f'{c.name}. {get_translation_for("info_level_str")}: ({c.level}).',
+                        f'{c.name}. {get_translation_for("info_level_str")}: {f"({c.level})"if c.level else "(_)"}.',
                         str(c.id)
                     ]
                 )
@@ -63,11 +63,11 @@ class AuthenticationState(BaseState):
         return False
 
     def entry(self, message: Message, user: User, bot: TeleBot):
-        if user.associated_with:
+        if user.check_association():
             return RET.GO_TO_STATE, 'MenuState', message, user
         if guard.get_allowed()[0] and guard.update_allowed()[0]:
             UsersSheet.update_model()
-        available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNATHORIZED).paginate(page=1, per_page=10)
+        available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(page=1, per_page=10)
         if not self._render_pagination(available_competitors, message, bot):
             bot.send_message(
                 message.chat.id,
@@ -96,7 +96,7 @@ class AuthenticationState(BaseState):
                         UsersSheet.update_competitor_status(competitor)
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
                     else:
-                        return RET.ANSWER_CALLBACK, get_translation_for('authentication_specified_competitor_not_found'), callback, user
+                        return RET.ANSWER_CALLBACK, get_translation_for('authentication_specified_competitor_not_found_clb'), callback, user
                 except ValidationError:
                     logger.exception(f'Incorrect competitor_id: {competitor_id} from user with user_id: {user.user_id}')
         elif data.find('paginate=') == 0:
@@ -105,11 +105,11 @@ class AuthenticationState(BaseState):
                 page = ds[1]
                 page = to_int(page, 1)
                 try:
-                    available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNATHORIZED).paginate(page=page,
+                    available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(page=page,
                                                                                                               per_page=10)
                 except NotFound:
                     logger.exception(f'User {user.user_id} tried to switch to nonexistent page {page}')
-                    available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNATHORIZED).paginate(page=1,
+                    available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(page=1,
                                                                                                               per_page=10)
                 if not self._render_pagination(available_competitors, callback.message, bot, update=True):
                     bot.send_message(
@@ -121,7 +121,7 @@ class AuthenticationState(BaseState):
         elif data.find('refresh') == 0:
             if guard.get_allowed()[0] and guard.update_allowed()[0]:
                 UsersSheet.update_model()
-            available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNATHORIZED).paginate(page=1,
+            available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(page=1,
                                                                                                       per_page=10)
             if not self._render_pagination(available_competitors, callback.message, bot):
                 bot.send_message(

@@ -5,7 +5,7 @@ from models import Localization
 LANGUAGES_DICTIONARY = {
     'uk': {
         'welcome_msg': 'Вітаю, {}!',
-        'menu_msg': 'Меню',
+
         'use_keyboard_msg': 'Використовуйте, будь ласка, віртуальну клавіатуру!',
         'message_type_not_supported_msg': 'Цей тип повідомлень не підтримується',
 
@@ -14,7 +14,7 @@ LANGUAGES_DICTIONARY = {
                               'Якщо не можете себе знайти, зв’яжіться, будь ласка, із адміністрацією.',
         'authentication_cannot_find_competitors_msg': 'Не вдалося знайти жодного неавторизованого учасника.\n'
                                                       'Для вирішення цієї проблеми зв’яжіться, будь ласка, з адміністрацією.',
-        'authentication_specified_competitor_not_found': 'Такого учасника не знайдено',
+        'authentication_specified_competitor_not_found_clb': 'Такого учасника не знайдено',
 
         'competitor_record_vanished_msg': 'Не вдалося знайти інформацію про гравця. Необхідно знову пройти процедуру аутентифікації',
 
@@ -24,10 +24,18 @@ LANGUAGES_DICTIONARY = {
         'menu_cancel_challenge_btn': 'Скасувати челендж',
         'menu_cancel_challenge_request_btn': 'Скасувати запит на челендж',
         'menu_reply_to_challenge_request_btn': 'Відповісти на челендж',
-        'menu_go_to_vacation_btn': 'Піти у відпустку',
-        'menu_got_to_injuiry_btn': 'Взяти лікарняний',
+        'menu_go_on_vacation_btn': 'Піти у відпустку',
+        'menu_go_on_sick_leave_btn': 'Взяти лікарняний',
         'menu_end_vacation_btn': 'Закінчити відпустку',
-        'menu_end_injuiry_status_btn': 'Вийти з лікарняного',
+        'menu_end_sick_leave_btn': 'Вийти з лікарняного',
+
+        'menu_msg': 'Меню',
+        'menu_on_sick_leave_start_msg': 'Ви пішли на лікарняний',
+        'menu_on_sick_leave_end_msg': 'Ви вийшли з лікарняного',
+        'menu_on_vacation_start_msg': 'Ви пішли у відпустку',
+        'menu_on_vacation_end_manual_msg': 'Ви вийшли з відпустки',
+        'menu_on_vacation_end_msg': 'Ваша відпустка закінчилася',
+        'menu_vacation_no_days_left_msg': 'У вас не лишилося днів відпустки в цьому місяці',
 
         'info_status_str': 'Статус',
         'info_level_str': 'Рівень',
@@ -35,6 +43,9 @@ LANGUAGES_DICTIONARY = {
         'info_wins_str': 'Перемог',
         'info_losses_str': 'Поразок',
         'info_performance_str': 'Performance',
+        'vacation_days_used_str': 'Використано днів відпустки',
+
+        'not_found_str': 'не знайдено',
     }
     #,
     #universal_lang: {
