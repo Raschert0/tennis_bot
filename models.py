@@ -19,10 +19,11 @@ class COMPETITOR_STATUS:
     CHALLENGE_INITIATED = 2  # When user sent challenge request to someone else
     CHALLENGE_NEED_RESPONSE = 3  # When user is answering to challenge request
     CHALLENGE = 4
-    PASSIVE = 5
-    VACATION = 6
-    INJUIRY = 7
-    INACTIVE = 8
+    CHALLENGE_NEED_RESULTS_CONFIRMATION = 5
+    PASSIVE = 6
+    VACATION = 7
+    INJUIRY = 8
+    INACTIVE = 9
 
 
 class RESULT(IntEnum):
@@ -30,6 +31,13 @@ class RESULT(IntEnum):
     B_WINS = 1
     DRAW = 2
     CANCELED = 3
+
+
+class LOG_SEVERITY:
+    INFO = 'INFO'
+    WARNING = 'WARNING'
+    ERROR = 'ERROR'
+    EXCEPTION = 'EXCEPTION'
 
 
 class Config(db.Document):
@@ -107,6 +115,7 @@ class Competitor(db.Document):
         COMPETITOR_STATUS.CHALLENGE_INITIATED: 'Challenged',
         COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE: 'Challenged',
         COMPETITOR_STATUS.CHALLENGE: 'Challenged',
+        COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION: 'Challenged',
         COMPETITOR_STATUS.PASSIVE: 'Passive',
         COMPETITOR_STATUS.VACATION: 'Vacation',
         COMPETITOR_STATUS.INJUIRY: 'Injuiry',
@@ -179,3 +188,17 @@ class Localization(db.Document):
     str_token = db.StringField(required=True)
     language = db.StringField(required=True)
     translation = db.StringField(required=True)
+
+
+class HighLevelLogs(db.Document):
+    date = db.DateTimeField(default=datetime.utcnow)
+    severity = db.StringField
+    log = db.StringField(required=True)
+
+    @staticmethod
+    def store_log(log: str, severity: str):
+        log_document = HighLevelLogs(
+            severity=severity,
+            log=log
+        )
+        log_document.save()

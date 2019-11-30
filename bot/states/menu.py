@@ -25,7 +25,8 @@ class MenuState(BaseState):
             'menu_go_on_vacation_btn': self.go_on_vacation,
             'menu_go_on_sick_leave_btn': self.go_on_sick_leave,
             'menu_end_vacation_btn': self.end_vacation,
-            'menu_end_sick_leave_btn': self.end_sick_leave
+            'menu_end_sick_leave_btn': self.end_sick_leave,
+            'menu_reply_to_challenge_request_btn': self.reply_on_challenge,
         }
 
     @check_wrapper
@@ -143,3 +144,8 @@ class MenuState(BaseState):
         UsersSheet.update_competitor_status(competitor)
         return RET.OK, None, None, None
 
+    @check_wrapper
+    def reply_on_challenge(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if competitor.status != COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE:
+            return RET.OK, None, None, None
+        return RET.GO_TO_STATE, 'ChallengeReceivedState', message, user

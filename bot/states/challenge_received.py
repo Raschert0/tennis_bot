@@ -100,9 +100,7 @@ class ChallengeReceivedState(BaseState):
                 'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
             )
 
-        opponent.previous_status = opponent.status
         opponent.status = COMPETITOR_STATUS.CHALLENGE
-        competitor.previous_status = competitor.status
         competitor.status = COMPETITOR_STATUS.CHALLENGE
         competitor.latest_challenge_received_at = None
 
