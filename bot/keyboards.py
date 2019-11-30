@@ -39,3 +39,13 @@ def get_menu_keyboard(**kwargs):
         keyboard.row(get_translation_for('menu_info_btn'))
         keyboard.row(get_translation_for('menu_end_sick_leave_btn'))
     return keyboard
+
+
+def get_challenge_confirmation_keyboard(**kwargs):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.row(
+        get_translation_for('challenge_received_accept_btn'),
+        get_translation_for('challenge_received_dismiss_btn')
+    )
+    keyboard.row(get_translation_for('back_btn'))
+    return keyboard

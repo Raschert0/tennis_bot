@@ -216,6 +216,7 @@ class ChallengeSendState(BaseState):
                         bot.send_message(
                             opponent_user.user_id,
                             get_translation_for('challenge_you_are_challenged_msg').format(
+                                user.user_id,
                                 competitor.name,
                                 competitor.level,
                                 config.time_to_accept_challenge
@@ -223,7 +224,7 @@ class ChallengeSendState(BaseState):
                             reply_markup=None
                             # TODO
                         )
-                        opponent_user.states.append('ChallengeAcceptState')
+                        opponent_user.states.append('ChallengeReceivedState')
                         if len(opponent_user.states) > config.STATES_HISTORY_LEN:
                             del opponent_user.states[0]
                         opponent_user.save()
@@ -231,6 +232,7 @@ class ChallengeSendState(BaseState):
                         bot.send_message(
                             opponent_user.user_id,
                             get_translation_for('challenge_you_are_challenged_passive_msg').format(
+                                user.user_id,
                                 competitor.name,
                                 competitor.level,
                                 config.time_to_accept_challenge
@@ -238,7 +240,7 @@ class ChallengeSendState(BaseState):
                             reply_markup=None
                             # TODO
                         )
-                        opponent_user.states.append('ChallengeAcceptState')
+                        opponent_user.states.append('ChallengeReceivedState')
                         if len(opponent_user.states) > config.STATES_HISTORY_LEN:
                             del opponent_user.states[0]
                         opponent_user.save()
@@ -259,6 +261,7 @@ class ChallengeSendState(BaseState):
                     competitor.previous_status = competitor.status
                     competitor.status = COMPETITOR_STATUS.CHALLENGE_INITIATED
                     competitor.in_challenge_with = opponent
+                    competitor.latest_challenge_sent_to = opponent
                     competitor.save()
                     return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
 

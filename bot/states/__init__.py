@@ -38,7 +38,7 @@ class BaseState(object):
                     if isinstance(ret, tuple):
                         return ret
                     break
-        return self.process_message(message, user, bot)
+        return self.process_message(message=message, user=user, bot=bot)
 
     # def authentication_required(self, user):
     #     if not self.needs_authentication:

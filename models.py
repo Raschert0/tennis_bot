@@ -60,7 +60,8 @@ class Competitor(db.Document):
 
     used_vacation_time = db.IntField(default=0)
     vacation_started_at = db.DateTimeField()
-    special_state_until = db.DateTimeField()
+
+    dismiss_confirmed = db.BooleanField()
 
     challenges_dismissed_in_a_row = db.IntField(default=0)
     challenges_ignored = db.IntField(default=0)
@@ -72,6 +73,7 @@ class Competitor(db.Document):
     latest_challenge_sent_to = db.LazyReferenceField('self')
 
     latest_challenge_received_at = db.DateTimeField()
+    challenge_started_at = db.DateTimeField()
 
     legacy_number = db.StringField()
 
@@ -81,9 +83,20 @@ class Competitor(db.Document):
         try:
             return self.in_challenge_with.fetch()
         except DoesNotExist:
-            self.in_challenge_with = None
-            self.save()
-            return False
+            try:
+                op = Competitor.objects(in_challenge_with=self).first()
+                if op is not None:
+                    self.in_challenge_with = op
+                    self.save()
+                    return op
+                else:
+                    self.in_challenge_with = None
+                    self.save()
+                    return False
+            except:
+                self.in_challenge_with = None
+                self.save()
+                return False
 
     meta = {'strict': False}
 

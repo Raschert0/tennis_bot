@@ -43,8 +43,8 @@ LANGUAGES_DICTIONARY = {
         'challenge_specified_competitor_not_found_clb': 'Такого учасника не знайдено',
         'challenge_opponent_no_longer_available_msg': 'Обраний гравець наразі недоступний для челенджа',
         'challenge_cannot_send_message_to_opponent_msg': 'Неможливо надіслати челендж гравцю, оскільки він відсутній у Telegram',
-        'challenge_you_are_challenged_msg': 'Вам надіслано челендж від {} (рівень: {}). Кількість днів для того, щоб дати відповідь: {}',
-        'challenge_you_are_challenged_passive_msg': 'Вам надіслано челендж від {} (рівень: {}). Кількість днів для того, щоб дати відповідь: {}\n'
+        'challenge_you_are_challenged_msg': 'Вам надіслано челендж від <a href="tg://user?id={}">{}</a> (рівень: {}). Кількість днів для того, щоб дати відповідь: {}',
+        'challenge_you_are_challenged_passive_msg': 'Вам надіслано челендж від <a href="tg://user?id={}">{}</a> (рівень: {}). Кількість днів для того, щоб дати відповідь: {}\n'
                                                     'Якщо Ви не приймете цей челендж, Вам буде зараховано технічну поразку!',
 
         'challenge_send_confirm_yes_btn': 'Так',
@@ -62,7 +62,22 @@ LANGUAGES_DICTIONARY = {
 
         'not_found_str': 'не знайдено',
 
-        'error_occurred_contact_administrator_msg': 'Під час обробки вашого запиту сталася помилка. Зв’яжіться, будь ласка, з адміністрацією'
+        'error_occurred_contact_administrator_msg': 'Під час обробки вашого запиту сталася помилка. Зв’яжіться, будь ласка, з адміністрацією',
+
+        'challenge_received_accept_btn': 'Прийняти челендж',
+        'challenge_received_dismiss_btn': 'Відхилити челендж',
+        'challenge_received_not_found': 'Челендж не знайдено. Повернення до головного меню',
+        'challenge_received_status': 'Наразі ви в челенджі з',
+        'challenge_received_warning': 'Якщо Ви відхилете цей челендж, то автоматично отримаєте технічну поразку!',
+        'challenge_confirm_technical_defeat': 'Відмова від цього челенджу призведе до технічної поразки!\n'
+                                              'Натисніть на кнопку ще раз, щоб підтверджити Ваш вибір',
+        'challenge_confirm_opponent_wins': 'Вам зараховано технічну перемогу. Ваш новий рівень:',
+        'challenge_confirm_competitor_losses': 'Вам зараховано технічну поразку. Ваш новий рейтинг:',
+        'challenge_confirm_challenge_accepted_opponent_msg': 'Ваш опонент {} прийняв челендж. Кількість днів, щоб зіграти челендж: {}',
+        'challenge_confirm_challenge_accepted_competitor_msg': 'Челендж прийнято. Ваш опонент - {}. Кількість днів, щоб зіграти челендж: {}',
+        'challenge_confirm_cannot_find_opponent_msg': 'Неможливо провести челендж - не вдається отримати інформацію про суперника',
+        'challenge_confirm_cannot_fin_opponents_user_msg': 'Неможливо провести челендж - суперник більше не присутній у Telegram, тож неможливо надіслати йому інформацію про челендж',
+        'challenge_confirm_challenge_canceled_by_bot_msg': 'Челендж буде скасовано. Для вирішення цієї проблеми зв’яжіться з адміністрацією.'
     }
     #,
     #universal_lang: {

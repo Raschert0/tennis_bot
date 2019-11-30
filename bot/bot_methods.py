@@ -1,4 +1,4 @@
-from models import User
+from models import User, Competitor
 from bot.states import RET
 from telebot import TeleBot
 from telebot.types import Message
@@ -100,3 +100,9 @@ def render_pagination(pagination: Pagination, message: Message, bot: TeleBot, te
             )
         return True
     return False
+
+
+def get_opponent_and_opponent_user(competitor: Competitor) -> (Competitor, User):
+    opponent: Competitor = competitor.check_opponent()
+    opponent_user = User.objects(associated_with=opponent).first() if opponent else None
+    return opponent, opponent_user
