@@ -12,55 +12,11 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from mongoengine.errors import ValidationError
 from werkzeug.exceptions import NotFound
 from logger_settings import logger
-from flask_mongoengine.pagination import Pagination
+from bot.bot_methods import render_pagination
 from helpers import to_int
 
 
 class AuthenticationState(BaseState):
-
-    def _render_pagination(self, pagination: Pagination, message: Message, bot: TeleBot, update=False):
-        if pagination.total:
-            available_competitors_encoded_names = []
-            for c in pagination.items:
-                available_competitors_encoded_names.append(
-                    [
-                        f'{c.name}. {get_translation_for("info_level_str")}: {f"({c.level})"if c.level else "(_)"}.',
-                        str(c.id)
-                    ]
-                )
-            update_failed = False
-            if update:
-                try:
-                    bot.edit_message_reply_markup(
-                        message.chat.id,
-                        message.message_id,
-                        reply_markup=self.__base_keyboard(
-                            names=available_competitors_encoded_names,
-                            has_pages=pagination.pages > 1,
-                            cur_page=pagination.page,
-                            pages=pagination.pages,
-                            has_next=pagination.has_next,
-                            has_prev=pagination.has_prev
-                        )
-                    )
-                except Exception:
-                    logger.exception(f'Exception occurred while updating keyboard for authentication message. Chat: {message.chat.id}')
-                    update_failed = True
-            if not update or update_failed:
-                bot.send_message(
-                    message.chat.id,
-                    get_translation_for('authentication_msg'),
-                    reply_markup=self.__base_keyboard(
-                        names=available_competitors_encoded_names,
-                        has_pages=pagination.pages > 1,
-                        cur_page=pagination.page,
-                        pages=pagination.pages,
-                        has_next=pagination.has_next,
-                        has_prev=pagination.has_prev
-                    )
-                )
-            return True
-        return False
 
     def entry(self, message: Message, user: User, bot: TeleBot):
         if user.check_association():
@@ -68,7 +24,13 @@ class AuthenticationState(BaseState):
         if guard.get_allowed()[0] and guard.update_allowed()[0]:
             UsersSheet.update_model()
         available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(page=1, per_page=10)
-        if not self._render_pagination(available_competitors, message, bot):
+        if not render_pagination(
+            available_competitors,
+            message,
+            bot,
+            get_translation_for('authentication_msg'),
+            self.__base_keyboard
+        ):
             bot.send_message(
                 message.chat.id,
                 get_translation_for('authentication_cannot_find_competitors_msg')
@@ -111,7 +73,14 @@ class AuthenticationState(BaseState):
                     logger.exception(f'User {user.user_id} tried to switch to nonexistent page {page}')
                     available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(page=1,
                                                                                                               per_page=10)
-                if not self._render_pagination(available_competitors, callback.message, bot, update=True):
+                if not render_pagination(
+                    available_competitors,
+                    callback.message,
+                    bot,
+                    get_translation_for('authentication_msg'),
+                    self.__base_keyboard,
+                    update=True
+                ):
                     bot.send_message(
                         callback.message.chat.id,
                         get_translation_for('authentication_cannot_find_competitors_msg')
@@ -123,7 +92,13 @@ class AuthenticationState(BaseState):
                 UsersSheet.update_model()
             available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(page=1,
                                                                                                       per_page=10)
-            if not self._render_pagination(available_competitors, callback.message, bot):
+            if not render_pagination(
+                    available_competitors,
+                    callback.message,
+                    bot,
+                    get_translation_for('authentication_msg'),
+                    self.__base_keyboard,
+            ):
                 bot.send_message(
                     callback.message.chat.id,
                     get_translation_for('authentication_cannot_find_competitors_msg')

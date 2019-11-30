@@ -38,9 +38,12 @@ class Config(db.Document):
     time_to_accept_challenge = db.IntField(default=3)
     time_to_play_challenge = db.IntField(default=10)
     challenge_play_reminder = db.IntField(default=3)
+    maximum_level_difference = db.IntField(default=3)
 
     spreadsheet_id = db.StringField(default='1TE6stp-x7z-O7Rp3Twtg5oJ8Ytmlx7TTqRgDZ5bx39k')
     spreadsheet_users_sheet = db.StringField(default='Игроки')
+
+    group_chat_id = db.IntField()
 
     last_daily_check = db.DateTimeField(default=datetime.utcnow())
 
@@ -66,6 +69,7 @@ class Competitor(db.Document):
     challenges_ignored_total = db.IntField(default=0)
 
     in_challenge_with = db.LazyReferenceField('self')
+    latest_challenge_sent_to = db.LazyReferenceField('self')
 
     legacy_number = db.StringField()
 

@@ -43,7 +43,7 @@ class UsersSheet:
                         wins=to_int(row[5]),
                         losses=to_int(row[6]),
                         performance=to_int(row[7]),
-                        used_vacancy_time=0
+                        used_vacation_time=0
                     )
                     new_data.save()
                     new_data.reload()

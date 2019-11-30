@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 from logger_settings import logger
 from bot.settings_interface import get_config_document
-
+from helpers import mongo_time_to_local
 
 
 def __scheduler_run(cease_run, interval=60):
@@ -26,7 +26,7 @@ def __scheduler_run(cease_run, interval=60):
         config = get_config_document()
         for competitor in Competitor.objects(status=COMPETITOR_STATUS.VACATION):
             if competitor.vacation_started_at:
-                delta = now - competitor.vacation_started_at.astimezone(tz)
+                delta = now - mongo_time_to_local(competitor.vacation_started_at, tz)
                 delta = delta.total_seconds()
                 if competitor.used_vacation_time is not None:
                     delta += competitor.used_vacation_time
@@ -48,22 +48,23 @@ def __scheduler_run(cease_run, interval=60):
                 competitor.vacation_started_at = now
                 competitor.save()
 
-
     def daily_task_check():
         config = get_config_document()
-        n = datetime.now(tz=timezone('Europe/Kiev'))
+        tz = timezone('Europe/Kiev')
+        n = datetime.now(tz=tz)
         if config.last_daily_check:
-            lc = config.last_daily_check.astimezone(timezone('Europe/Kiev'))
+            lc = mongo_time_to_local(config.last_daily_check, tz)
             if (n - lc) > timedelta(hours=3) and n.hour in (8, 9, 10):
                 logger.info(f'Performing daily task at {n}')
                 config.last_daily_check = n
                 config.save()
                 daily_task()
+        else:
+            config.last_daily_check = n
+            config.save()
 
     schedule.logger.setLevel(logging.WARNING)
-    schedule.every(5).minutes.do(daily_task_check)
-    logging.info('Test')
-    logging.error('Test2')
+    schedule.every(5).seconds.do(daily_task_check)
 
     while not cease_run.is_set():
         schedule.run_pending()

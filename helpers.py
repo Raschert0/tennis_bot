@@ -1,3 +1,6 @@
+from pytz import UTC
+
+
 def is_digit(s):
     try:
         int(s)
@@ -17,3 +20,7 @@ def user_last_state(user, default):
     if len(user.states):
         return user.states[len(user.states) - 1]
     return default
+
+
+def mongo_time_to_local(mtime, tz):
+    return mtime.replace(tzinfo=UTC).astimezone(tz)

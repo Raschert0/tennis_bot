@@ -37,6 +37,17 @@ LANGUAGES_DICTIONARY = {
         'menu_on_vacation_end_msg': 'Ваша відпустка закінчилася',
         'menu_vacation_no_days_left_msg': 'У вас не лишилося днів відпустки в цьому місяці',
 
+        'challenge_send_msg': 'Оберіть зі списку гравця, якому ви хочете надіслати челендж',
+        'challenge_send_confirm_msg': 'Підтвердити надсилання челенджа грацю {}?',
+        'challenge_no_applicable_competitors_msg': 'Наразі ніхто з доступних Вам гравців не може взяти участь у челенджі',
+        'challenge_specified_competitor_not_found_clb': 'Такого учасника не знайдено',
+        'challenge_opponent_no_longer_available_msg': 'Обраний гравець наразі недоступний для челенджа',
+        'challenge_cannot_send_message_to_opponent_msg': 'Неможливо надіслати челендж гравцю, оскільки він відсутній у Telegram',
+        'challenge_you_are_challenged_msg': 'Вам надіслано челендж від {} (рівень: {}). Кількість днів для того, щоб дати відповідь: {}',
+
+        'challenge_send_confirm_yes_btn': 'Так',
+        'challenge_send_confirm_no_btn': 'Ні',
+
         'info_status_str': 'Статус',
         'info_level_str': 'Рівень',
         'info_matches_str': 'Матчів',
@@ -44,6 +55,8 @@ LANGUAGES_DICTIONARY = {
         'info_losses_str': 'Поразок',
         'info_performance_str': 'Performance',
         'vacation_days_used_str': 'Використано днів відпустки',
+
+        'back_btn': 'Назад',
 
         'not_found_str': 'не знайдено',
     }

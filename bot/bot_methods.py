@@ -5,6 +5,8 @@ from telebot.types import Message
 from localization.translations import get_translation_for
 from bot.keyboards import get_keyboard_remover
 from functools import wraps
+from flask_mongoengine.pagination import Pagination
+from logger_settings import logger
 
 
 def competitor_check(message: Message, user: User, bot: TeleBot, send_message=True):
@@ -38,3 +40,63 @@ def check_wrapper(func):
         else:
             return ch['tuple']
     return wrapper
+
+
+def render_pagination(pagination: Pagination, message: Message, bot: TeleBot, text: str, keyboard_func, update=False, updateText=False):
+    if pagination.total:
+        available_competitors_encoded_names = []
+        for c in pagination.items:
+            available_competitors_encoded_names.append(
+                [
+                    f'{c.name}. {get_translation_for("info_level_str")}: {f"({c.level})"if c.level else "(_)"}.',
+                    str(c.id)
+                ]
+            )
+        update_failed = False
+        if update:
+            try:
+                if updateText:
+                    bot.edit_message_text(
+                        text,
+                        message.chat.id,
+                        message.message_id,
+                        reply_markup=keyboard_func(
+                            names=available_competitors_encoded_names,
+                            has_pages=pagination.pages > 1,
+                            cur_page=pagination.page,
+                            pages=pagination.pages,
+                            has_next=pagination.has_next,
+                            has_prev=pagination.has_prev
+                        )
+                    )
+                else:
+                    bot.edit_message_reply_markup(
+                        message.chat.id,
+                        message.message_id,
+                        reply_markup=keyboard_func(
+                            names=available_competitors_encoded_names,
+                            has_pages=pagination.pages > 1,
+                            cur_page=pagination.page,
+                            pages=pagination.pages,
+                            has_next=pagination.has_next,
+                            has_prev=pagination.has_prev
+                        )
+                    )
+            except Exception:
+                logger.exception(f'Exception occurred while updating keyboard pagination. Chat: {message.chat.id}')
+                update_failed = True
+        if not update or update_failed:
+            bot.send_message(
+                message.chat.id,
+                text,
+                reply_markup=keyboard_func(
+                    names=available_competitors_encoded_names,
+                    has_pages=pagination.pages > 1,
+                    cur_page=pagination.page,
+                    pages=pagination.pages,
+                    has_next=pagination.has_next,
+                    has_prev=pagination.has_prev
+                )
+            )
+        return True
+    return False

@@ -11,8 +11,9 @@ from bot.bot_methods import check_wrapper
 from bot.settings_interface import get_config_document
 from bot.keyboards import get_menu_keyboard
 from google_integration.sheets.users import UsersSheet
-from datetime import datetime
+from datetime import datetime, timedelta
 from pytz import timezone
+from helpers import mongo_time_to_local
 
 
 class MenuState(BaseState):
@@ -54,7 +55,7 @@ class MenuState(BaseState):
                f'{get_translation_for("info_wins_str")}: {competitor.wins}\n' \
                f'{get_translation_for("info_losses_str")}: {competitor.losses}\n' \
                f'{get_translation_for("info_performance_str")}: {competitor.performance}\n' \
-               f'{get_translation_for("vacation_days_used_str")}: {competitor.used_vacation_time or 0}/{config.vacation_time}'
+               f'{get_translation_for("vacation_days_used_str")}: {timedelta(seconds=competitor.used_vacation_time).days if competitor.used_vacation_time else 0}/{config.vacation_time}'
         bot.send_message(
             message.chat.id,
             info,
@@ -68,7 +69,7 @@ class MenuState(BaseState):
         if competitor.status not in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
             return RET.OK, None, None, None
         config = get_config_document()
-        if competitor.used_vacation_time >= config.vacation_time:
+        if timedelta(seconds=competitor.used_vacation_time).days >= config.vacation_time:
             bot.send_message(
                 message.chat.id,
                 get_translation_for('menu_vacation_no_days_left_msg'),
@@ -112,7 +113,7 @@ class MenuState(BaseState):
         else:
             tz = timezone('Europe/Kiev')
             now = datetime.now(tz=tz)
-            delta = now - competitor.vacation_started_at.astimezone(tz)
+            delta = now - mongo_time_to_local(competitor.vacation_started_at, tz)
             delta = delta.total_seconds()
         if competitor.used_vacation_time is None:
             competitor.used_vacation_time = delta
