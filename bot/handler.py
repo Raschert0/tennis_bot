@@ -11,6 +11,7 @@ import config
 from bot.states.start import StartState
 from bot.states.authentication import AuthenticationState
 from bot.states.menu import MenuState
+from bot.states.challenge import ChallengeSendState
 
 
 class BotHandlers(object):
@@ -23,6 +24,7 @@ class BotHandlers(object):
             StartState,
             MenuState,
             AuthenticationState,
+            ChallengeSendState,
         )
         self.__start_handling()
 

@@ -15,8 +15,9 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from mongoengine.errors import ValidationError
 from helpers import to_int
 from werkzeug.exceptions import NotFound
-from bot.keyboards import get_keyboard_remover
 from bot.settings_interface import get_config_document
+from datetime import datetime
+from pytz import timezone
 
 
 class ChallengeSendState(BaseState):
@@ -85,7 +86,7 @@ class ChallengeSendState(BaseState):
             return RET.ANSWER_CALLBACK, None, callback, user
         data = data.replace('challenge_to', '')
 
-        competitor = user.check_association()
+        competitor: Competitor = user.check_association()
         if not competitor:
             bot.send_message(
                 callback.message.chat.id,
@@ -189,7 +190,7 @@ class ChallengeSendState(BaseState):
                     )
                     return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
                 try:
-                    opponent = Competitor.objects(status__in = (
+                    opponent: Competitor = Competitor.objects(status__in = (
                             COMPETITOR_STATUS.ACTIVE,
                             COMPETITOR_STATUS.PASSIVE
                         ),
@@ -203,22 +204,64 @@ class ChallengeSendState(BaseState):
                         )
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
                     opponent_user: User = User.objects(associated_with=opponent).first()
-                    config = get_config_document()
                     if opponent_user is None:
                         bot.send_message(
                             callback.message.id,
                             get_translation_for('challenge_cannot_send_message_to_opponent_msg')
                         )
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
+
+                    config = get_config_document()
                     if opponent.status == COMPETITOR_STATUS.ACTIVE:
                         bot.send_message(
                             opponent_user.user_id,
-                            get_translation_for('challenge_you_are_challenged_msg').format()
+                            get_translation_for('challenge_you_are_challenged_msg').format(
+                                competitor.name,
+                                competitor.level,
+                                config.time_to_accept_challenge
+                            ),
+                            reply_markup=None
+                            # TODO
                         )
+                        opponent_user.states.append('ChallengeAcceptState')
+                        if len(opponent_user.states) > config.STATES_HISTORY_LEN:
+                            del opponent_user.states[0]
+                        opponent_user.save()
                     elif opponent.status == COMPETITOR_STATUS.PASSIVE:
-                        pass
+                        bot.send_message(
+                            opponent_user.user_id,
+                            get_translation_for('challenge_you_are_challenged_passive_msg').format(
+                                competitor.name,
+                                competitor.level,
+                                config.time_to_accept_challenge
+                            ),
+                            reply_markup=None
+                            # TODO
+                        )
+                        opponent_user.states.append('ChallengeAcceptState')
+                        if len(opponent_user.states) > config.STATES_HISTORY_LEN:
+                            del opponent_user.states[0]
+                        opponent_user.save()
                     else:
                         logger.error(f'Trying to send message to opponent with incorrect state: {opponent.name} {opponent.legacy_number}')
+                        bot.send_message(
+                            callback.message.chat.id,
+                            get_translation_for('error_occurred_contact_administrator_msg')
+                        )
+                        return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
+
+                    opponent.previous_status = opponent.status
+                    opponent.status = COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE
+                    opponent.in_challenge_with = competitor
+                    opponent.latest_challenge_received_at = datetime.now(tz=timezone('Europe/Kiev'))
+                    opponent.save()
+
+                    competitor.previous_status = competitor.status
+                    competitor.status = COMPETITOR_STATUS.CHALLENGE_INITIATED
+                    competitor.in_challenge_with = opponent
+                    competitor.save()
+                    return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
+
                 except ValidationError:
                     logger.exception(f'Incorrect opponent_id: {opponent_id} from user with user_id: {user.user_id}')
 

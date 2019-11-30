@@ -71,6 +71,8 @@ class Competitor(db.Document):
     in_challenge_with = db.LazyReferenceField('self')
     latest_challenge_sent_to = db.LazyReferenceField('self')
 
+    latest_challenge_received_at = db.DateTimeField()
+
     legacy_number = db.StringField()
 
     def check_opponent(self):

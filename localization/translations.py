@@ -44,6 +44,8 @@ LANGUAGES_DICTIONARY = {
         'challenge_opponent_no_longer_available_msg': 'Обраний гравець наразі недоступний для челенджа',
         'challenge_cannot_send_message_to_opponent_msg': 'Неможливо надіслати челендж гравцю, оскільки він відсутній у Telegram',
         'challenge_you_are_challenged_msg': 'Вам надіслано челендж від {} (рівень: {}). Кількість днів для того, щоб дати відповідь: {}',
+        'challenge_you_are_challenged_passive_msg': 'Вам надіслано челендж від {} (рівень: {}). Кількість днів для того, щоб дати відповідь: {}\n'
+                                                    'Якщо Ви не приймете цей челендж, Вам буде зараховано технічну поразку!',
 
         'challenge_send_confirm_yes_btn': 'Так',
         'challenge_send_confirm_no_btn': 'Ні',
@@ -59,6 +61,8 @@ LANGUAGES_DICTIONARY = {
         'back_btn': 'Назад',
 
         'not_found_str': 'не знайдено',
+
+        'error_occurred_contact_administrator_msg': 'Під час обробки вашого запиту сталася помилка. Зв’яжіться, будь ласка, з адміністрацією'
     }
     #,
     #universal_lang: {
