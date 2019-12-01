@@ -14,8 +14,8 @@ def get_menu_keyboard(**kwargs):
 
     status = kwargs.get('status', COMPETITOR_STATUS.UNAUTHORIZED)
     if status == COMPETITOR_STATUS.UNAUTHORIZED:
-        logger.error('Not provided status for keyboard in menu state. Backing up ACTIVE state')
-        status = COMPETITOR_STATUS.ACTIVE
+        logger.error('Not provided status for keyboard in menu state. Asserting')
+        assert False
 
     if status in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
         keyboard.row(get_translation_for('menu_info_btn'))
@@ -63,7 +63,7 @@ def get_challenge_confirmation_keyboard(**kwargs):
 
 def get_results_keyboard(**kwargs):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=4)
-    if kwargs.get('confirmation_stage'):
+    if kwargs.get('confirmation_stage', None):
         keyboard.row(
             get_translation_for('result_competitor_win_btn'),
             get_translation_for('result_opponent_win_btn')
@@ -72,8 +72,13 @@ def get_results_keyboard(**kwargs):
             get_translation_for('results_confirm_btn')
         )
     else:
-        for i in range(17):
-            keyboard.add(str(i))
+        for i in range(4):
+            keyboard.row(
+                str(4 * i),
+                str(4 * i + 1),
+                str(4 * i + 2),
+                str(4 * i + 3),
+            )
         keyboard.row(get_translation_for('results_scores_confirm_btn'))
     keyboard.row(
         get_translation_for('to_menu_btn'),
@@ -84,7 +89,7 @@ def get_results_keyboard(**kwargs):
 
 
 def get_result_confirmation_keyboard(**kwargs):
-    keyboard = types.ReplyKeyboardMarkup
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.row(
         get_translation_for('result_confirmation_confirm_btn'),
         get_translation_for('result_confirmation_dismiss_btn')

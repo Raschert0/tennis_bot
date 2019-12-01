@@ -125,14 +125,14 @@ LANGUAGES_DICTIONARY = {
 
         'result_confirmation_msg': 'Ваш суперник надіслав результати матчу. Підтвердіть чи відхиліть їх.',
         'result_confirmation_confirm_msg': 'Для підтвердження вибору натисніть кнопку ще раз',
-        'result_confirmation_confirmed_msg': '',
-        'result_confirmation_confirmed_opponent_msg': '',
-        'result_confirmation_dismissed_msg': '',
-        'result_confirmation_dismissed_opponent_msg': '',
+        'result_confirmation_confirmed_msg': 'Результати матчу підтверджені',
+        'result_confirmation_confirmed_opponent_msg': 'Ваш опонент підтвердив результат матчу',
+        'result_confirmation_dismissed_msg': 'Результати матчу відхилені',
+        'result_confirmation_dismissed_opponent_msg': 'Ваш опонент відхилив результати матчу',
 
         'your_level_changed_str': 'Ваш рівень змінився: {}->{}',
 
-        'menu_accept_challenge_results_btn': 'Переглянути результати матча',
+        'menu_accept_challenge_results_btn': 'Переглянути результати матчу',
     }
     #,
     #universal_lang: {

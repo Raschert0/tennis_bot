@@ -49,7 +49,8 @@ class ChallengeConfirmResultsState(BaseState):
                 res,
                 final=False
             ),
-            reply_markup=get_result_confirmation_keyboard()
+            reply_markup=get_result_confirmation_keyboard(),
+            parse_mode='html'
         )
         return RET.OK, None, None, None
 
@@ -128,6 +129,8 @@ class ChallengeConfirmResultsState(BaseState):
             prev_level = winner.level
             new_level = loser.level
 
+        opponent.reload()
+        competitor.reload()
         if prev_level:
             if opponent == winner:
                 bot.send_message(
@@ -202,13 +205,15 @@ class ChallengeConfirmResultsState(BaseState):
                 'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
             )
 
-        opponent.status = opponent.previous_challenge_status
-        opponent.previous_challenge_status = None
+        if opponent.previous_challenge_status:
+            opponent.status = opponent.previous_challenge_status
+            opponent.previous_challenge_status = None
         opponent.save()
 
         competitor.status = competitor.previous_challenge_status
         competitor.previous_challenge_status = None
         competitor.save()
+
 
         bot.send_message(
             opponent_user.user_id,
@@ -221,6 +226,9 @@ class ChallengeConfirmResultsState(BaseState):
             get_translation_for('result_confirmation_dismissed_msg')
         )
 
+        res.delete()
+        opponent_user.current_result = None
+        opponent_user.save()
         user.current_result = None
         user.save()
-        return RET.GO_TO_STATE, 'MenuState', None, None
+        return RET.GO_TO_STATE, 'MenuState', message, user

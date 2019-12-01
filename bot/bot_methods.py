@@ -176,7 +176,7 @@ def teardown_challenge(
 
 
 def render_result(res: Result, final=False):
-    text = get_translation_for('result_current_str')+':'
+    text = get_translation_for('result_current_str')+':\n'
     rr = res.scores
     scorepairs = [[]]
     for s in rr:
@@ -184,16 +184,19 @@ def render_result(res: Result, final=False):
             scorepairs.append([s])
         else:
             scorepairs[-1].append(s)
+            if len(scorepairs[-1]) == 2 and not final and res.result is None:
+                scorepairs.append([])
 
     for sp in scorepairs:
         if len(sp) == 0:
             text += f'X-_'
         if len(sp) == 1:
-            text += f'\n{sp[0]}-X'
+            text += f'{sp[0]}-X'
         if len(sp) == 2:
-            text += f'\n{sp[0]}-{sp[1]}'
+            text += f'{sp[0]}-{sp[1]}'
+        text += '\n'
 
-    text += '\n\n'
+    text += '\n'
     if final:
         if res.result is not None:
             text += get_translation_for('result_to_change_winner_press_again_str')

@@ -18,7 +18,7 @@ class ChallengeSendResultsState(BaseState):
     def __init__(self):
         super().__init__()
         self._buttons = {
-            'back_bt': self.back_button,
+            'back_btn': self.back_button,
             'to_menu_btn': self.main_menu_btn,
             'results_clear_btn': self.clear_results,
             'result_competitor_win_btn': self.register_my_win,
@@ -102,7 +102,7 @@ class ChallengeSendResultsState(BaseState):
 
     @check_wrapper
     def process_message(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
-        score = to_int(message, None)
+        score = to_int(message.text, None)
         if score is None:
             return super().process_message(message, user, bot)
 
@@ -118,7 +118,7 @@ class ChallengeSendResultsState(BaseState):
             )
             return RET.OK, None, None, None
 
-        if 0 <= score <= 15:
+        if score < 0 or score > 15:
             bot.send_message(
                 user.user_id,
                 get_translation_for('results_incorrect_score_msg'),
@@ -136,7 +136,7 @@ class ChallengeSendResultsState(BaseState):
         )
 
     def __base_keyboard(self, **kwargs):
-        return get_results_keyboard()
+        return get_results_keyboard(**kwargs)
 
     @check_wrapper
     def back_button(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
@@ -195,9 +195,7 @@ class ChallengeSendResultsState(BaseState):
                 message.chat.id,
                 get_translation_for('result_winner_must_be_specified_msg')
             )
-
-        user.current_result = None
-        user.save()
+            return RET.OK, None, None, None
 
         opponent, opponent_user = get_opponent_and_opponent_user(competitor)
         if not opponent or not opponent_user:
@@ -218,7 +216,7 @@ class ChallengeSendResultsState(BaseState):
         if ores:
             ores.delete()
         opponent_user.current_result = res
-        opponent_user.states.append('ChallengeConfirmationState')
+        opponent_user.states.append('ChallengeConfirmResultsState')
         if len(opponent_user.states) > STATES_HISTORY_LEN:
             del opponent_user.states[0]
         opponent_user.save()
@@ -232,7 +230,8 @@ class ChallengeSendResultsState(BaseState):
                 res,
                 final=False
             ),
-            reply_markup=get_result_confirmation_keyboard()
+            reply_markup=get_result_confirmation_keyboard(),
+            parse_mode='html'
         )
 
         bot.send_message(

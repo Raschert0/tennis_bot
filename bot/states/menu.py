@@ -33,6 +33,7 @@ class MenuState(BaseState):
             'challenge_cancel_request_opponent_dismiss_btn': self.dismiss_cancellation_opponent,
             'menu_accept_challenge_results_btn': self.accept_results,
             'menu_create_challenge_btn': self.create_challenge,
+            'menu_cancel_challenge_btn': self.cancel_challenge,
         }
 
     @check_wrapper
@@ -199,6 +200,21 @@ class MenuState(BaseState):
     def submit_results(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
         if competitor.status not in (COMPETITOR_STATUS.CHALLENGE_STARTER, COMPETITOR_STATUS.CHALLENGE_RECEIVER):
             return RET.OK, None, None, None
+        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+        if not opponent or not opponent_user:
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
+            )
+        if opponent.status == COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION:
+            bot.send_message(
+                message.chat.id,
+                get_translation_for('results_already_sent_msg')
+            )
+            return RET.OK, None, None, None
         return RET.GO_TO_STATE, 'ChallengeSendResultsState', message, user
 
     @check_wrapper
@@ -341,7 +357,7 @@ class MenuState(BaseState):
 
         bot.send_message(
             opponent_user.user_id,
-            get_translation_for('challenge_cancellation_denied_msg').format(competitor.name),
+            get_translation_for('challenge_cancellation_denied_opponent_msg').format(competitor.name),
             reply_markup=self.__base_keyboard(status=opponent.status)
         )
 
