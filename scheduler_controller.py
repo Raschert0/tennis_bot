@@ -14,6 +14,7 @@ from config import PROJECT_NAME
 
 def __scheduler_run(cease_run, interval=60):
 
+    print('*Scheduler started*')
     db.connect(PROJECT_NAME)
 
     def daily_task():

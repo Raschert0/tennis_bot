@@ -32,6 +32,10 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    if args.bot or args.web_server_with_hooks:
+        from scheduler_controller import schedule_controller
+        schedule_controller()
+
 
 from time import sleep
 from bot.views import bot_blueprint, bot_handler
@@ -63,8 +67,6 @@ if __name__ == "__main__":
 
     UsersSheet.update_model()
     if args.bot:
-        create_translation()
-        schedule_controller()
         bot_handler.bot.remove_webhook()
         bot_handler.bot.polling(none_stop=True)
     elif args.web_server:
@@ -76,11 +78,6 @@ if __name__ == "__main__":
         sleep(1)
         bot_handler.bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
                                     certificate=open(WEBHOOK_SSL_CERT, 'r'))
-
-        schedule_controller()
-
-        admin.init_app(app)
-        login.init_app(app)
 
         app.run(host=WEBHOOK_LISTEN,
                 port=WEBHOOK_PORT,

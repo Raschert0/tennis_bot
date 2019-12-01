@@ -32,4 +32,4 @@ keyfile = WEBHOOK_SSL_PRIV
 certfile = WEBHOOK_SSL_CERT
 bind = '0.0.0.0:'+str(WEBHOOK_PORT)
 workers = WORKERS
-worker_class = 'eventlet'
+worker_class = 'gthread'
