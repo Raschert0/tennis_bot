@@ -35,9 +35,10 @@ def get_menu_keyboard(**kwargs):
     elif status == COMPETITOR_STATUS.CHALLENGE_RECEIVER:
         keyboard.row(get_translation_for('menu_info_btn'))
         keyboard.row(get_translation_for('menu_submit_challenge_results_btn'))
-    elif status == COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION:
+    elif status == COMPETITOR_STATUS.CHALLENGE_NEED_CANCELLATION_CONFIRMATION:
         keyboard.row(get_translation_for('menu_info_btn'))
-        pass
+        keyboard.row(get_translation_for('challenge_cancel_request_opponent_confirm_btn'))
+        keyboard.row(get_translation_for('challenge_cancel_request_opponent_dismiss_btn'))
     elif status == COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION:
         keyboard.row(get_translation_for('menu_info_btn'))
         keyboard.row(get_translation_for('menu_accept_challenge_results_btn'))

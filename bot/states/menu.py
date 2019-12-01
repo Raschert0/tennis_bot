@@ -29,6 +29,8 @@ class MenuState(BaseState):
             'menu_reply_to_challenge_request_btn': self.reply_on_challenge,
             'menu_cancel_challenge_request_btn': self.cancel_challenge_request,
             'menu_submit_challenge_results_btn': self.submit_results,
+            'challenge_cancel_request_opponent_confirm_btn': self.confirm_cancellation_opponent,
+            'challenge_cancel_request_opponent_dismiss_btn': self.dismiss_cancellation_opponent,
         }
 
     @check_wrapper
@@ -201,6 +203,24 @@ class MenuState(BaseState):
     def cancel_challenge(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
         if competitor.status != COMPETITOR_STATUS.CHALLENGE_STARTER:
             return RET.OK, None, None, None
+        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+        if not opponent or not opponent_user:
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
+            )
+
+        if opponent.status == COMPETITOR_STATUS.CHALLENGE_NEED_CANCELLATION_CONFIRMATION:
+            bot.send_message(
+                user.user_id,
+                get_translation_for('challenge_cancellation_in_progress_msg').format(opponent.name),
+                reply_markup=self.__base_keyboard(status=competitor.status)
+            )
+            return RET.OK, None, None, None
+
         if not user.dismiss_confirmed:
             bot.send_message(
                 message.chat.id,
@@ -214,10 +234,111 @@ class MenuState(BaseState):
             user.dismiss_confirmed = False
             user.save()
 
-        pass
+        opponent.previous_challenge_status = opponent.status
+        opponent.status = COMPETITOR_STATUS.CHALLENGE_NEED_CANCELLATION_CONFIRMATION
+        opponent.save()
+
+        opponent_user.dismiss_confirmed = False
+        opponent_user.save()
+
+        bot.send_message(
+            opponent_user.user_id,
+            get_translation_for('challenge_cancel_request_opponent_msg').format(competitor.name),
+            reply_markup=self.__base_keyboard(status=opponent.status)
+        )
+
         bot.send_message(
             message.chat.id,
             get_translation_for('challenge_cancel_request_sent_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
         return RET.OK, None, None, None
+
+    @check_wrapper
+    def confirm_cancellation_opponent(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if competitor.status != COMPETITOR_STATUS.CHALLENGE_NEED_CANCELLATION_CONFIRMATION:
+            return RET.OK, None, None, None
+        if not user.dismiss_confirmed:
+            bot.send_message(
+                message.chat.id,
+                get_translation_for('challenge_cancel_msg'),
+                reply_markup=self.__base_keyboard(status=competitor.status)
+            )
+            user.dismiss_confirmed = True
+            user.save()
+            return RET.OK, None, None, None
+        else:
+            user.dismiss_confirmed = False
+            user.save()
+
+        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+        if not opponent or not opponent_user:
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
+            )
+
+        opponent.status = opponent.previous_status
+        opponent.previous_status = None
+        opponent.previous_challenge_status = None
+        opponent.in_challenge_with = None
+        opponent.challenge_started_at = None
+        opponent.save()
+
+        competitor.status = competitor.previous_status
+        competitor.previous_status = None
+        competitor.previous_challenge_status = None
+        competitor.in_challenge_with = None
+        competitor.challenge_started_at = None
+        competitor.save()
+
+        bot.send_message(
+            opponent_user.user_id,
+            get_translation_for('challenge_canceled_msg').format(competitor.name),
+            reply_markup=self.__base_keyboard(status=opponent.status)
+        )
+
+        bot.send_message(
+            message.chat.id,
+            get_translation_for('challenge_canceled_msg').format(opponent.name),
+            reply_markup=self.__base_keyboard(status=competitor.status)
+        )
+        return RET.OK, None, None, None
+
+    @check_wrapper
+    def dismiss_cancellation_opponent(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if competitor.status != COMPETITOR_STATUS.CHALLENGE_NEED_CANCELLATION_CONFIRMATION:
+            return RET.OK, None, None, None
+
+        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+        if not opponent or not opponent_user:
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
+            )
+
+        competitor.status = competitor.previous_challenge_status
+        competitor.previous_challenge_status = None
+        competitor.save()
+
+        user.dismiss_confirmed = False
+        user.save()
+
+        bot.send_message(
+            opponent_user.user_id,
+            get_translation_for('challenge_cancellation_denied_msg').format(competitor.name),
+            reply_markup=self.__base_keyboard(status=opponent.status)
+        )
+
+        bot.send_message(
+            user.user_id,
+            get_translation_for('challenge_cancellation_denied_msg').format(opponent.name),
+            reply_markup=self.__base_keyboard(status=competitor.status)
+        )
+        return RET.OK, None, None

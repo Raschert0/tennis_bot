@@ -48,6 +48,14 @@ LANGUAGES_DICTIONARY = {
                                                     'Якщо Ви не приймете цей челендж, Вам буде зараховано технічну поразку!',
         'challenge_cancel_msg': 'Ви впевнені, що хочете скасувати цей челендж? Для підтвердження натисніть на кнопку ще раз',
         'challenge_cancel_request_sent_msg': 'Запит на скасування челенджа надіслано вашому опоненту',
+        'challenge_cancel_request_opponent_msg': 'Ваш опонент {} хоче скасувати челендж. Для підтвердження цього натисніть відповідну кнопку у меню',
+        'challenge_canceled_msg': 'Ваш челендж з {} скасовано',
+        'challenge_cancellation_denied_opponent_msg': 'Ваш опонент {} відхилив скасування челенджа',
+        'challenge_cancellation_denied_msg': 'Ви відхилили пропозицію {} стосовно скасування челенджа',
+        'challenge_cancellation_in_progress_msg': 'Ваш опонент {} вже розглядає пропозицію скасування челенджа',
+
+        'challenge_cancel_request_opponent_confirm_btn': 'Підтвердити скасування челенджа',
+        'challenge_cancel_request_opponent_dismiss_btn': 'Відхилити скасування челенджа',
 
         'challenge_send_confirm_yes_btn': 'Так',
         'challenge_send_confirm_no_btn': 'Ні',

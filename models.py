@@ -16,15 +16,16 @@ class RDR(IntEnum):
 class COMPETITOR_STATUS:
     UNAUTHORIZED = 0
     ACTIVE = 1
-    CHALLENGE_INITIATED = 2  # When user sent challenge request to someone else
-    CHALLENGE_NEED_RESPONSE = 3  # When user is answering to challenge request
-    CHALLENGE_STARTER = 4
-    CHALLENGE_RECEIVER = 5
-    CHALLENGE_NEED_RESULTS_CONFIRMATION = 6
-    PASSIVE = 6
-    VACATION = 7
-    INJUIRY = 8
-    INACTIVE = 9
+    PASSIVE = 2
+    VACATION = 3
+    INJUIRY = 4
+    INACTIVE = 5
+    CHALLENGE_INITIATED = 6  # When user sent challenge request to someone else
+    CHALLENGE_NEED_RESPONSE = 7  # When user is answering to challenge request
+    CHALLENGE_STARTER = 8  # When challenge is started and user is an initiator
+    CHALLENGE_RECEIVER = 9  # When challenge is started
+    CHALLENGE_NEED_RESULTS_CONFIRMATION = 10
+    CHALLENGE_NEED_CANCELLATION_CONFIRMATION = 11
 
 
 class RESULT(IntEnum):
@@ -114,7 +115,8 @@ class Competitor(db.Document):
         COMPETITOR_STATUS.ACTIVE: 'Active',
         COMPETITOR_STATUS.CHALLENGE_INITIATED: 'Challenged',
         COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE: 'Challenged',
-        COMPETITOR_STATUS.CHALLENGE: 'Challenged',
+        COMPETITOR_STATUS.CHALLENGE_STARTER: 'Challenged',
+        COMPETITOR_STATUS.CHALLENGE_RECEIVER: 'Challenged',
         COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION: 'Challenged',
         COMPETITOR_STATUS.PASSIVE: 'Passive',
         COMPETITOR_STATUS.VACATION: 'Vacation',
