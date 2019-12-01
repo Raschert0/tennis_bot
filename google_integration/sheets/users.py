@@ -60,6 +60,10 @@ class UsersSheet:
         cfg = get_config_document()
         if check_for_existence:
             pass
+        data.reload()
+        if not data.legacy_number:
+            data.legacy_number = str(Competitor.objects.count() + 100)
+            data.save()
         if at_row is None:
             already_inserted_data = UsersSheet.get_all_users()
             at_row = len(already_inserted_data) + 2

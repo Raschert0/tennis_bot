@@ -46,9 +46,11 @@ class Config(db.Document):
     config_id = db.StringField()
     vacation_time = db.IntField(default=14)
     time_to_accept_challenge = db.IntField(default=3)
+    accept_challenge_reminder = db.IntField(default=2)
     time_to_play_challenge = db.IntField(default=10)
     challenge_play_reminder = db.IntField(default=3)
     maximum_level_difference = db.IntField(default=3)
+    maximum_challenges_ignored = db.IntField(default=3)
 
     spreadsheet_id = db.StringField(default='1TE6stp-x7z-O7Rp3Twtg5oJ8Ytmlx7TTqRgDZ5bx39k')
     spreadsheet_users_sheet = db.StringField(default='Игроки')
@@ -77,6 +79,8 @@ class Competitor(db.Document):
 
     challenges_dismissed_total = db.IntField(default=0)
     challenges_ignored_total = db.IntField(default=0)
+
+    challenge_remainder_sent = db.BooleanField()
 
     in_challenge_with = db.LazyReferenceField('self')
     latest_challenge_sent_to = db.LazyReferenceField('self')

@@ -142,6 +142,18 @@ class MyAdminView(ModelView):
         return current_user.is_authenticated
 
 
+class ConfigView(ModelView):
+    create_modal = True
+    edit_modal = True
+
+    form_excluded_columns = ['config_id', 'last_daily_check']
+    can_delete = False
+    can_create = False
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
 admin = Admin(template_mode='bootstrap3')
 admin.add_view(MyUserView(User, name='Користувачі (TG)'))
 admin.add_view(CompetitorView(Competitor, name='Учасники турніру'))

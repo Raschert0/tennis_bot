@@ -17,6 +17,9 @@ def get_menu_keyboard(**kwargs):
         logger.error('Not provided status for keyboard in menu state. Asserting')
         assert False
 
+    if status == COMPETITOR_STATUS.INACTIVE:
+        return types.ReplyKeyboardRemove()
+
     if status in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
         keyboard.row(get_translation_for('menu_info_btn'))
         keyboard.row(get_translation_for('menu_create_challenge_btn'))
