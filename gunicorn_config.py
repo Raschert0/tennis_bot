@@ -16,12 +16,14 @@ def post_fork(server, worker):
         from telebot import TeleBot
         from config import BOT_TOKEN
         from time import sleep
+        from scheduler_controller import schedule_controller
 
         bot = TeleBot(BOT_TOKEN, threaded=False)
         bot.remove_webhook()
         sleep(1)
         bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
                         certificate=open(WEBHOOK_SSL_CERT, 'r'))
+        schedule_controller()
 
 
 accesslog = os.getcwd() + '/access-logs.log'

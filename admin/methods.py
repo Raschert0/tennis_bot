@@ -8,7 +8,7 @@ import csv
 import os
 import config
 
-bot = telebot.TeleBot(config.BOT_TOKEN)
+bot = telebot.TeleBot(config.BOT_TOKEN, threaded=False)
 
 def get_date_from_str(date_string):
     return datetime.strptime(date_string, '%d.%m.%Y')

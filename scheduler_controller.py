@@ -8,9 +8,13 @@ from pytz import timezone
 from logger_settings import logger
 from bot.settings_interface import get_config_document
 from helpers import mongo_time_to_local
+from models import db
+from config import PROJECT_NAME
 
 
 def __scheduler_run(cease_run, interval=60):
+
+    db.connect(PROJECT_NAME)
 
     def daily_task():
         from models import Competitor, COMPETITOR_STATUS, User
@@ -36,7 +40,7 @@ def __scheduler_run(cease_run, interval=60):
                     relevant_user: User = User.objects(associated_with=competitor).first()
                     if relevant_user is not None:
                         if not tbot:
-                            tbot = TeleBot(BOT_TOKEN)
+                            tbot = TeleBot(BOT_TOKEN, threaded=False)
                         tbot.send_message(
                             relevant_user.user_id,
                             get_translation_for('menu_on_vacation_end_msg'),

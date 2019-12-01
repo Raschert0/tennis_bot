@@ -46,6 +46,12 @@ app = Flask(PROJECT_NAME)
 app.config['MONGODB_DB'] = PROJECT_NAME
 app.config['SECRET_KEY'] = b'\x10X\xe6\x1c\xb0\xea\x9a\xbf\xa3\x16\x83\xe8\x0c\x84a\x87'
 db.init_app(app)
+app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
+app.register_blueprint(bot_blueprint)
+app.register_blueprint(admin_blueprint)
+admin.init_app(app)
+login.init_app(app)
+create_translation()
 
 
 if __name__ == "__main__":
@@ -62,11 +68,6 @@ if __name__ == "__main__":
         bot_handler.bot.remove_webhook()
         bot_handler.bot.polling(none_stop=True)
     elif args.web_server:
-        admin.init_app(app)
-        login.init_app(app)
-        app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
-        app.register_blueprint(bot_blueprint)
-        app.register_blueprint(admin_blueprint)
         app.run(debug=True)
     elif args.scheduler:
         schedule_controller()
@@ -80,9 +81,7 @@ if __name__ == "__main__":
 
         admin.init_app(app)
         login.init_app(app)
-        app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
-        app.register_blueprint(bot_blueprint)
-        app.register_blueprint(admin_blueprint)
+
         app.run(host=WEBHOOK_LISTEN,
                 port=WEBHOOK_PORT,
                 ssl_context=(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV),
