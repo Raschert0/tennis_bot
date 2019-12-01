@@ -81,3 +81,13 @@ def get_results_keyboard(**kwargs):
         get_translation_for('results_clear_btn')
     )
     return keyboard
+
+
+def get_result_confirmation_keyboard(**kwargs):
+    keyboard = types.ReplyKeyboardMarkup
+    keyboard.row(
+        get_translation_for('result_confirmation_confirm_btn'),
+        get_translation_for('result_confirmation_dismiss_btn')
+    )
+    keyboard.row(get_translation_for('back_btn'))
+    return keyboard

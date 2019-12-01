@@ -1,4 +1,4 @@
-from models import User, Competitor
+from models import User, Competitor, Result, RESULT
 from bot.states import RET
 from telebot import TeleBot
 from telebot.types import Message
@@ -173,3 +173,46 @@ def teardown_challenge(
                 f'{get_translation_for(cause_key)}'
             )
     return RET.GO_TO_STATE, 'MenuState', message, user
+
+
+def render_result(res: Result, final=False):
+    text = get_translation_for('result_current_str')+':'
+    rr = res.scores
+    scorepairs = [[]]
+    for s in rr:
+        if len(scorepairs[-1]) >= 2:
+            scorepairs.append([s])
+        else:
+            scorepairs[-1].append(s)
+
+    for sp in scorepairs:
+        if len(sp) == 0:
+            text += f'X-_'
+        if len(sp) == 1:
+            text += f'\n{sp[0]}-X'
+        if len(sp) == 2:
+            text += f'\n{sp[0]}-{sp[1]}'
+
+    text += '\n\n'
+    if final:
+        if res.result is not None:
+            text += get_translation_for('result_to_change_winner_press_again_str')
+        else:
+            text += get_translation_for('result_select_winner_str')
+        text += '\n'
+
+    if res.result is not None:
+        text += '\n'
+        text += f'<b>{get_translation_for("result_match_result_str")}: '
+        c = None
+        if res.result == RESULT.A_WINS:
+            c = f'{res.player_a.fetch().name} {get_translation_for("result_wins_str")} {res.player_b.fetch().name}'
+        elif res.result == RESULT.B_WINS:
+            c = f'{res.player_b.fetch().name} {get_translation_for("result_wins_str")} {res.player_a.fetch().name}'
+        elif res.result == RESULT.CANCELED:
+            c = get_translation_for('result_challenge_canceled_str')
+
+        if c:
+            text += c
+        text += '</b>'
+    return text

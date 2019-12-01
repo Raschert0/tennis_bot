@@ -31,6 +31,7 @@ class MenuState(BaseState):
             'menu_submit_challenge_results_btn': self.submit_results,
             'challenge_cancel_request_opponent_confirm_btn': self.confirm_cancellation_opponent,
             'challenge_cancel_request_opponent_dismiss_btn': self.dismiss_cancellation_opponent,
+            'menu_accept_challenge_results_btn': self.accept_results,
         }
 
     @check_wrapper
@@ -348,4 +349,8 @@ class MenuState(BaseState):
             get_translation_for('challenge_cancellation_denied_msg').format(opponent.name),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
-        return RET.OK, None, None
+        return RET.OK, None, None, None
+
+    @check_wrapper
+    def accept_results(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        return RET.GO_TO_STATE, 'ChallengeConfirmResultsState', message, user

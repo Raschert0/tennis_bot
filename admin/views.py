@@ -3,7 +3,7 @@ from flask_admin.contrib.mongoengine import ModelView
 from flask_admin import Admin, BaseView, expose
 from flask_admin.form import rules
 from flask_login import LoginManager, current_user, login_user, logout_user
-from models import User, Administrator, Competitor
+from models import User, Administrator, Competitor, RESULT, Result, HighLevelLogs
 from admin.forms import LoginForm
 import admin.methods as methods
 from threading import Thread
@@ -104,8 +104,34 @@ class CompetitorView(ModelView):
     }
     create_modal = True
     edit_modal = True
-    column_exclude_list = ['legacy_number']
-    form_excluded_columns = ['previous_status', 'legacy_number']
+    column_exclude_list = ['legacy_number', 'previous_challenge_status']
+    form_excluded_columns = ['previous_status', 'legacy_number', 'previous_challenge_status', 'in_challenge_with', 'latest_challenge_sent_to', ]
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+class ResultView(ModelView):
+
+    create_modal = True
+    can_set_page_size = True
+    edit_modal = True
+    column_exclude_list = ['player_a', 'player_b']
+    form_excluded_columns = ['player_a', 'player_b']
+
+    column_formatters = {
+        'result': lambda v, c, m, p: Result.result_to_str_dict[m.result]
+    }
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+class LogsView(ModelView):
+
+    column_searchable_list = ['log', ]
+    can_set_page_size = True
+    column_filters = ['severity', ]
 
     def is_accessible(self):
         return current_user.is_authenticated
@@ -117,7 +143,9 @@ class MyAdminView(ModelView):
 
 
 admin = Admin(template_mode='bootstrap3')
-admin.add_view(MyUserView(User, name='Пользователи'))
-admin.add_view(CompetitorView(Competitor, name='Учасники'))
-admin.add_view(MyAdminView(Administrator, name='Админы', category='Настройки'))
-admin.add_view(LocalizationView(name="Localization", endpoint="localization"))
+admin.add_view(MyUserView(User, name='Користувачі (TG)'))
+admin.add_view(CompetitorView(Competitor, name='Учасники турніру'))
+admin.add_view(ResultView(Result, name='Результати'))
+admin.add_view(LogsView(HighLevelLogs, name='Логи', category='Налаштування'))
+admin.add_view(MyAdminView(Administrator, name='Адміни', category='Налаштування'))
+admin.add_view(LocalizationView(name="Переклад", category='Налаштування', endpoint="localization"))

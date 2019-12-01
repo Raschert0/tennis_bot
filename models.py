@@ -128,11 +128,23 @@ class Competitor(db.Document):
 class Result(db.Document):
     player_a = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
     player_b = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
+    player_a_s = db.StringField()
+    player_b_s = db.StringField()
     scores = db.ListField(db.IntField())
     result = db.IntField()
     confirmed = db.BooleanField()
+    date = db.DateTimeField()
+    sent = db.BooleanField()
 
     meta = {'strict': False}
+
+    result_to_str_dict = {
+        None: None,
+        RESULT.A_WINS: 'Виграш гравця A',
+        RESULT.B_WINS: 'Виграш гравця B',
+        RESULT.CANCELED: 'Canceled',
+        RESULT.DRAW: 'Draw'
+    }
 
 
 class User(db.Document):

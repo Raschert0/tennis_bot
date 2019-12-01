@@ -6,10 +6,11 @@ from telebot.types import Message, CallbackQuery
 from models import User
 
 from models import Competitor, COMPETITOR_STATUS, Result, RESULT
-from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge
-from bot.keyboards import get_results_keyboard
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, render_result
+from bot.keyboards import get_results_keyboard, get_result_confirmation_keyboard
 from helpers import to_int
 from logger_settings import logger
+from config import STATES_HISTORY_LEN
 
 
 class ChallengeSendResultsState(BaseState):
@@ -48,45 +49,11 @@ class ChallengeSendResultsState(BaseState):
             user.current_result = res
             user.save()
 
-        text = get_translation_for('result_current_str')+':'
-        rr = res.scores
-        scorepairs = [[]]
-        for s in rr:
-            if len(scorepairs[-1]) >= 2:
-                scorepairs.append([s])
-            else:
-                scorepairs[-1].append(s)
+        text = render_result(
+            res,
+            final
+        )
 
-        for sp in scorepairs:
-            if len(sp) == 0:
-                text += f'X-_'
-            if len(sp) == 1:
-                text += f'\n{sp[0]}-X'
-            if len(sp) == 2:
-                text += f'\n{sp[0]}-{sp[1]}'
-
-        text += '\n\n'
-        if final:
-            if res.result is not None:
-                text += get_translation_for('result_to_change_winner_press_again_str')
-            else:
-                text += get_translation_for('result_select_winner_str')
-            text += '\n'
-
-        if res.result is not None:
-            text += '\n'
-            text += f'<b>{get_translation_for("result_match_result_str")}: '
-            c = None
-            if res.result == RESULT.A_WINS:
-                c = f'{res.player_a.fetch().name} {get_translation_for("result_wins_str")} {res.player_b.fetch().name}'
-            elif res.result == RESULT.B_WINS:
-                c = f'{res.player_b.fetch().name} {get_translation_for("result_wins_str")} {res.player_a.fetch().name}'
-            elif res.result == RESULT.CANCELED:
-                c = get_translation_for('result_challenge_canceled_str')
-
-            if c:
-                text += c
-            text += '</b>'
         bot.send_message(
             message.chat.id,
             text,
@@ -102,7 +69,7 @@ class ChallengeSendResultsState(BaseState):
         if competitor.status not in (COMPETITOR_STATUS.CHALLENGE_STARTER, COMPETITOR_STATUS.CHALLENGE_RECEIVER):
             logger.error(f"User ({user.user_id}) - {competitor.name} entered ChallengeSendResultsState with incorrect competitor status {competitor.status}")
             return RET.GO_TO_STATE, 'MenuState', message, user
-        `opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
         if not opponent or not opponent_user:
             return teardown_challenge(
                 competitor,
@@ -110,11 +77,7 @@ class ChallengeSendResultsState(BaseState):
                 user,
                 bot,
                 'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
-            )`
-        bot.send_message(
-            user.user_id,
-            get_translation_for('results_enter_results_msg')
-        )
+            )
         if not user.check_result():
             res = Result(
                 player_a=competitor,
@@ -124,6 +87,17 @@ class ChallengeSendResultsState(BaseState):
             res.save()
             user.current_result = res
             user.save()
+        elif not user.check_result().sent:
+            bot.send_message(
+                user.user_id,
+                get_translation_for('results_enter_results_msg')
+            )
+        else:
+            bot.send_message(
+                message.chat.id,
+                get_translation_for('results_already_sent_msg')
+            )
+            return RET.GO_TO_STATE, 'MenuState', message, user
         return self.process_result(message, user, bot, competitor, final=user.check_result().result is not None)
 
     @check_wrapper
@@ -238,12 +212,78 @@ class ChallengeSendResultsState(BaseState):
 
         opponent.previous_challenge_status = opponent.status
         opponent.status = COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION
-        
+        opponent.save()
+
+        ores = opponent_user.check_result()
+        if ores:
+            ores.delete()
+        opponent_user.current_result = res
+        opponent_user.states.append('ChallengeConfirmationState')
+        if len(opponent_user.states) > STATES_HISTORY_LEN:
+            del opponent_user.states[0]
+        opponent_user.save()
+
+        res.sent = True
+        res.save()
+
+        bot.send_message(
+            opponent_user.user_id,
+            get_translation_for('result_confirmation_msg') + '\n' + render_result(
+                res,
+                final=False
+            ),
+            reply_markup=get_result_confirmation_keyboard()
+        )
+
+        bot.send_message(
+            message.chat.id,
+            get_translation_for('results_sent_to_opponent_msg')
+        )
+        return RET.GO_TO_STATE, 'MenuState', message, user
 
     @check_wrapper
     def register_my_win(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
-        pass
+        res = user.check_result()
+        if res.player_a == competitor:
+            res.result = RESULT.A_WINS
+        elif res.player_b == competitor:
+            res.result = RESULT.B_WINS
+        else:
+            logger.error(f'Competitor {competitor.name} record vanished from results record {str(res.id)}')
+            return RET.GO_TO_STATE, 'MenuState', message, user
+        res.save()
+        return self.process_result(
+            message,
+            user,
+            bot,
+            competitor,
+            True
+        )
 
     @check_wrapper
     def register_opponent_wins(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
-        pass
+        res = user.check_result()
+        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+        if not opponent or not opponent_user:
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
+            )
+        if res.player_a == opponent:
+            res.result = RESULT.A_WINS
+        elif res.player_b == opponent:
+            res.result = RESULT.B_WINS
+        else:
+            logger.error(f'Opponent {opponent.name} record vanished from results record {str(res.id)}')
+            return RET.GO_TO_STATE, 'MenuState', message, user
+        res.save()
+        return self.process_result(
+            message,
+            user,
+            bot,
+            competitor,
+            True
+        )

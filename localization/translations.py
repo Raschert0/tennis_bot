@@ -114,6 +114,20 @@ LANGUAGES_DICTIONARY = {
         'result_select_winner_str': 'Вкажіть, хто переміг у матчі, натиснувши відповідну кнопку',
         'result_wins_str': 'перемагає',
         'result_winner_must_be_specified_msg': 'Необхідно вказати переможця матчу',
+        'results_sent_to_opponent_msg': 'Результат матчу надіслано вашому опоненту. Тепер він має його підтвердити',
+        'results_already_sent_msg': 'Результат вже надіслано. Чекайте, будь ласка, на відповідь опонента',
+
+        'result_confirmation_confirm_btn': 'Результат підтверджую',
+        'result_confirmation_dismiss_btn': 'Результат не підтверджую',
+
+        'result_confirmation_msg': 'Ваш суперник надіслав результати матчу. Підтвердіть чи відхиліть їх.',
+        'result_confirmation_confirm_msg': 'Для підтвердження вибору натисніть кнопку ще раз',
+        'result_confirmation_confirmed_msg': '',
+        'result_confirmation_confirmed_opponent_msg': '',
+        'result_confirmation_dismissed_msg': '',
+        'result_confirmation_dismissed_opponent_msg': '',
+
+        'your_level_changed_str': 'Ваш рівень змінився: {}->{}',
     }
     #,
     #universal_lang: {
