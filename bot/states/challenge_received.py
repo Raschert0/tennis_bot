@@ -27,8 +27,7 @@ class ChallengeReceivedState(BaseState):
         }
 
     def form_message(self, competitor: Competitor, opponent: Competitor, opponent_user: User):
-
-        text = f'<b>{get_translation_for("challenge_received_status")}:</b> <a href="tg://user?id="{opponent_user.user_id}">{opponent.name}</a>. <b>{get_translation_for("info_level_str")}: {opponent.level}</b>'
+        text = f'<b>{get_translation_for("challenge_received_status")}:</b> <a href="tg://user?id={opponent_user.user_id}">{opponent.name}</a>. <b>{get_translation_for("info_level_str")}: {opponent.level}</b>'
         if competitor.previous_status == COMPETITOR_STATUS.PASSIVE:
             text = f'{text}\n' \
                    f'{get_translation_for("challenge_received_warning")}'
@@ -97,6 +96,8 @@ class ChallengeReceivedState(BaseState):
         opponent.challenge_started_at = n
         competitor.challenge_started_at = n
 
+        competitor.challenges_dismissed_in_a_row = 0
+
         opponent.save()
         competitor.save()
 
@@ -104,10 +105,11 @@ class ChallengeReceivedState(BaseState):
         bot.send_message(
             opponent_user.user_id,
             get_translation_for('challenge_confirm_challenge_accepted_opponent_msg').format(
-                f'<a href="tg://user?id="{user.user_id}">{competitor.name}</a>',
+                f'<a href="tg://user?id={user.user_id}">{competitor.name}</a>',
                 config.time_to_play_challenge
             ),
-            reply_markup=get_menu_keyboard(status=opponent.status)
+            reply_markup=get_menu_keyboard(status=opponent.status),
+            parse_mode='html'
         )
         opponent_user.dismiss_confirmed = False
         opponent_user.states.append('MenuState')
@@ -119,12 +121,11 @@ class ChallengeReceivedState(BaseState):
         user.save()
         bot.send_message(
             user.user_id,
-            get_translation_for(
-                get_translation_for('challenge_confirm_challenge_accepted_competitor_msg').format(
-                    f'<a href="tg://user?id="{opponent_user.user_id}">{opponent.name}</a>',  # TODO
-                    config.time_to_play_challenge
-                )
-            )
+            get_translation_for('challenge_confirm_challenge_accepted_competitor_msg').format(
+                f'<a href="tg://user?id={opponent_user.user_id}">{opponent.name}</a>',  # TODO
+                config.time_to_play_challenge
+            ),
+            parse_mode='html'
         )
         return RET.GO_TO_STATE, 'MenuState', message, user
 
@@ -148,7 +149,7 @@ class ChallengeReceivedState(BaseState):
         else:
             user.dismiss_confirmed = False
             user.save()
-            if competitor.previous_status == COMPETITOR_STATUS.PASSIVE:
+            if competitor.previous_status == COMPETITOR_STATUS.PASSIVE and competitor.challenges_dismissed_in_a_row >= 1:
                 defeat = True
 
         opponent, opponent_user = get_opponent_and_opponent_user(competitor)
@@ -195,20 +196,30 @@ class ChallengeReceivedState(BaseState):
         competitor.latest_challenge_received_at = None
         competitor.save()
 
-        config = get_config_document()
-        if opponent_user:
+        opponent_user.states.append('MenuState')
+        if len(opponent_user.states) > STATES_HISTORY_LEN:
+            del opponent_user.states[0]
+        opponent_user.save()
+
+        if defeat:
             bot.send_message(
                 opponent_user.user_id,
                 get_translation_for('challenge_confirm_opponent_wins') + ' ' + str(opponent.level),
                 reply_markup=get_menu_keyboard(status=opponent.status)
             )
-            opponent_user.states.append('MenuState')
-            if len(opponent_user.states) > STATES_HISTORY_LEN:
-                del opponent_user.states[0]
-            opponent_user.save()
+            bot.send_message(
+                user.user_id,
+                get_translation_for('challenge_confirm_competitor_losses') + ' ' + str(competitor.level),
+            )
+        else:
+            bot.send_message(
+                opponent_user.user_id,
+                get_translation_for('challenge_confirmation_dismissed_opponent_msg'),
+                reply_markup=get_menu_keyboard(status=opponent.status)
+            )
+            bot.send_message(
+                user.user_id,
+                get_translation_for('challenge_confirmation_dismissed_competitor_msg'),
+            )
 
-        bot.send_message(
-            user.user_id,
-            get_translation_for('challenge_confirm_competitor_losses') + ' ' + str(competitor.level),
-        )
         return RET.GO_TO_STATE, 'MenuState', message, user

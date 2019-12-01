@@ -45,7 +45,7 @@ class ChallengeSendState(BaseState):
                 COMPETITOR_STATUS.PASSIVE
             ),
             level__in=possible_levels,
-            id__ne=competitor.latest_challenge_sent_to or ObjectId()
+            id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId()
         ).paginate(page=1, per_page=10)
         if not render_pagination(
             available_competitors,
@@ -84,9 +84,9 @@ class ChallengeSendState(BaseState):
 
     def process_callback(self, callback:CallbackQuery, user: User, bot: TeleBot):
         data = callback.data
-        if data.find('challenge_to') != 0:
+        if data.find('challenge_to_') != 0:
             return RET.ANSWER_CALLBACK, None, callback, user
-        data = data.replace('challenge_to', '')
+        data = data.replace('challenge_to_', '')
 
         competitor: Competitor = user.check_association()
         if not competitor:
@@ -143,7 +143,14 @@ class ChallengeSendState(BaseState):
                 page = ds[1]
                 page = to_int(page, 1)
                 try:
-                    available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(
+                    available_competitors = Competitor.objects(
+                        status__in=(
+                            COMPETITOR_STATUS.ACTIVE,
+                            COMPETITOR_STATUS.PASSIVE
+                        ),
+                        level__in=self.get_possible_levels(competitor.level),
+                        id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId()
+                    ).paginate(
                         page=page,
                         per_page=10)
                 except NotFound:
@@ -168,14 +175,21 @@ class ChallengeSendState(BaseState):
         elif data.find('refresh') == 0:
             if guard.get_allowed()[0] and guard.update_allowed()[0]:
                 UsersSheet.update_model()
-            available_competitors = Competitor.objects(status=COMPETITOR_STATUS.UNAUTHORIZED).paginate(page=1,
-                                                                                                       per_page=10)
+            available_competitors = Competitor.objects(
+                status__in=(
+                    COMPETITOR_STATUS.ACTIVE,
+                    COMPETITOR_STATUS.PASSIVE
+                ),
+                level__in=self.get_possible_levels(competitor.level),
+                id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId()
+            ).paginate(page=1, per_page=10)
             if not render_pagination(
-                    available_competitors,
-                    callback.message,
-                    bot,
-                    get_translation_for('challenge_send_msg'),
-                    self.__base_keyboard,
+                available_competitors,
+                callback.message,
+                bot,
+                get_translation_for('challenge_send_msg'),
+                self.__base_keyboard,
+                update=True,
             ):
                 bot.send_message(
                     callback.message.chat.id,
@@ -187,7 +201,7 @@ class ChallengeSendState(BaseState):
                 opponent_id = ds[1]
                 if competitor.latest_challenge_sent_to and opponent_id == str(competitor.latest_challenge_sent_to):
                     bot.send_message(
-                        callback.message.id,
+                        callback.message.chat.id,
                         get_translation_for('challenge_opponent_no_longer_available_msg')
                     )
                     return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
@@ -201,14 +215,14 @@ class ChallengeSendState(BaseState):
                     ).first()
                     if opponent is None:
                         bot.send_message(
-                            callback.message.id,
+                            callback.message.chat.id,
                             get_translation_for('challenge_opponent_no_longer_available_msg')
                         )
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
                     opponent_user: User = User.objects(associated_with=opponent).first()
                     if opponent_user is None:
                         bot.send_message(
-                            callback.message.id,
+                            callback.message.chat.id,
                             get_translation_for('challenge_cannot_send_message_to_opponent_msg')
                         )
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
@@ -250,7 +264,8 @@ class ChallengeSendState(BaseState):
                         logger.error(f'Trying to send message to opponent with incorrect state: {opponent.name} {opponent.legacy_number}')
                         bot.send_message(
                             callback.message.chat.id,
-                            get_translation_for('error_occurred_contact_administrator_msg')
+                            get_translation_for('error_occurred_contact_administrator_msg'),
+                            parse_mode='html'
                         )
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
 
@@ -268,6 +283,13 @@ class ChallengeSendState(BaseState):
 
                     user.dismiss_confirmed = False
                     user.save()
+
+                    bot.send_message(
+                        callback.message.chat.id,
+                        get_translation_for('challenge_sent_msg').format(opponent_user.user_id, opponent.name),
+                        parse_mode='html'
+                    )
+
                     return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
 
                 except ValidationError:

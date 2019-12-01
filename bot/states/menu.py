@@ -32,6 +32,7 @@ class MenuState(BaseState):
             'challenge_cancel_request_opponent_confirm_btn': self.confirm_cancellation_opponent,
             'challenge_cancel_request_opponent_dismiss_btn': self.dismiss_cancellation_opponent,
             'menu_accept_challenge_results_btn': self.accept_results,
+            'menu_create_challenge_btn': self.create_challenge,
         }
 
     @check_wrapper
@@ -353,4 +354,12 @@ class MenuState(BaseState):
 
     @check_wrapper
     def accept_results(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if competitor.status != COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION:
+            return RET.OK, None, None, None
         return RET.GO_TO_STATE, 'ChallengeConfirmResultsState', message, user
+
+    @check_wrapper
+    def create_challenge(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if competitor.status not in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
+            return RET.OK, None, None, None
+        return RET.GO_TO_STATE, 'ChallengeSendState', message, user

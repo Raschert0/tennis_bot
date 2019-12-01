@@ -38,7 +38,8 @@ LANGUAGES_DICTIONARY = {
         'menu_vacation_no_days_left_msg': 'У вас не лишилося днів відпустки в цьому місяці',
 
         'challenge_send_msg': 'Оберіть зі списку гравця, якому ви хочете надіслати челендж',
-        'challenge_send_confirm_msg': 'Підтвердити надсилання челенджа грацю {}?',
+        'challenge_send_confirm_msg': 'Підтвердити надсилання челенджа гравцю {}?',
+        'challenge_sent_msg': 'Ви успішно надіслали челендж гравцю <a href="tg://user?id={}">{}</a>. Очікуйте, будь ласка, на його відповідь',
         'challenge_no_applicable_competitors_msg': 'Наразі ніхто з доступних Вам гравців не може взяти участь у челенджі',
         'challenge_specified_competitor_not_found_clb': 'Такого учасника не знайдено',
         'challenge_opponent_no_longer_available_msg': 'Обраний гравець наразі недоступний для челенджа',
@@ -86,7 +87,9 @@ LANGUAGES_DICTIONARY = {
         'challenge_confirm_technical_defeat': 'Відмова від цього челенджу призведе до технічної поразки!\n'
                                               'Натисніть на кнопку ще раз, щоб підтверджити Ваш вибір',
         'challenge_confirm_opponent_wins': 'Вам зараховано технічну перемогу. Ваш новий рівень:',
-        'challenge_confirm_competitor_losses': 'Вам зараховано технічну поразку. Ваш новий рейтинг:',
+        'challenge_confirm_competitor_losses': 'Вам зараховано технічну поразку. Ваш новий рівень:',
+        'challenge_confirmation_dismissed_opponent_msg': 'Ваш опонент відмовився від челенджа',
+        'challenge_confirmation_dismissed_competitor_msg': 'Ви відмовилися від челенджа',
         'challenge_confirm_challenge_accepted_opponent_msg': 'Ваш опонент {} прийняв челендж. Кількість днів, щоб зіграти челендж: {}',
         'challenge_confirm_challenge_accepted_competitor_msg': 'Челендж прийнято. Ваш опонент - {}. Кількість днів, щоб зіграти челендж: {}',
         'challenge_confirm_cannot_find_opponent_msg': 'Неможливо провести челендж - не вдається отримати інформацію про суперника',
@@ -95,7 +98,7 @@ LANGUAGES_DICTIONARY = {
 
         'challenge_request_cancel_confirm_msg': 'Підтвердіть скасування запиту на челендж. Для цього настиніть ще раз на кнопку.',
         'challenge_request_canceled_to_competitor_msg': 'Ви скасували свій запит на челендж',
-        'challenge_request_canceled_to_opponent_msg': 'Гравець {} скасував свій запит в челенджу до вас',
+        'challenge_request_canceled_to_opponent_msg': 'Гравець {} скасував свій запит на челендж до вас',
 
         'results_clear_btn': 'Очистити результат',
         'results_confirm_btn': 'Підтвердити результат',
@@ -128,6 +131,8 @@ LANGUAGES_DICTIONARY = {
         'result_confirmation_dismissed_opponent_msg': '',
 
         'your_level_changed_str': 'Ваш рівень змінився: {}->{}',
+
+        'menu_accept_challenge_results_btn': 'Переглянути результати матча',
     }
     #,
     #universal_lang: {

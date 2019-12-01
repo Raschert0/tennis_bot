@@ -10,7 +10,7 @@ def get_keyboard_remover():
 
 
 def get_menu_keyboard(**kwargs):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 
     status = kwargs.get('status', COMPETITOR_STATUS.UNAUTHORIZED)
     if status == COMPETITOR_STATUS.UNAUTHORIZED:
