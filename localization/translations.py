@@ -46,6 +46,8 @@ LANGUAGES_DICTIONARY = {
         'challenge_you_are_challenged_msg': 'Вам надіслано челендж від <a href="tg://user?id={}">{}</a> (рівень: {}). Кількість днів для того, щоб дати відповідь: {}',
         'challenge_you_are_challenged_passive_msg': 'Вам надіслано челендж від <a href="tg://user?id={}">{}</a> (рівень: {}). Кількість днів для того, щоб дати відповідь: {}\n'
                                                     'Якщо Ви не приймете цей челендж, Вам буде зараховано технічну поразку!',
+        'challenge_cancel_msg': 'Ви впевнені, що хочете скасувати цей челендж? Для підтвердження натисніть на кнопку ще раз',
+        'challenge_cancel_request_sent_msg': 'Запит на скасування челенджа надіслано вашому опоненту',
 
         'challenge_send_confirm_yes_btn': 'Так',
         'challenge_send_confirm_no_btn': 'Ні',
@@ -66,6 +68,8 @@ LANGUAGES_DICTIONARY = {
 
         'challenge_received_accept_btn': 'Прийняти челендж',
         'challenge_received_dismiss_btn': 'Відхилити челендж',
+        'challenge_received_dismiss_confirm_msg': 'Ви впевнені, що хочете відмовитися від челенджа?\n'
+                                                  'Натисніть кнопку ще раз, щоб підтвердити Ваш вибір',
         'challenge_received_not_found': 'Челендж не знайдено. Повернення до головного меню',
         'challenge_received_status': 'Наразі ви в челенджі з',
         'challenge_received_warning': 'Якщо Ви відхилете цей челендж, то автоматично отримаєте технічну поразку!',
@@ -77,7 +81,11 @@ LANGUAGES_DICTIONARY = {
         'challenge_confirm_challenge_accepted_competitor_msg': 'Челендж прийнято. Ваш опонент - {}. Кількість днів, щоб зіграти челендж: {}',
         'challenge_confirm_cannot_find_opponent_msg': 'Неможливо провести челендж - не вдається отримати інформацію про суперника',
         'challenge_confirm_cannot_fin_opponents_user_msg': 'Неможливо провести челендж - суперник більше не присутній у Telegram, тож неможливо надіслати йому інформацію про челендж',
-        'challenge_confirm_challenge_canceled_by_bot_msg': 'Челендж буде скасовано. Для вирішення цієї проблеми зв’яжіться з адміністрацією.'
+        'challenge_confirm_challenge_canceled_by_bot_msg': 'Челендж буде скасовано автоматично. Для вирішення цієї проблеми зв’яжіться з адміністрацією.',
+
+        'challenge_request_cancel_confirm_msg': 'Підтвердіть скасування запиту на челендж. Для цього настиніть ще раз на кнопку.',
+        'challenge_request_canceled_to_competitor_msg': 'Ви скасували свій запит на челендж',
+        'challenge_request_canceled_to_opponent_msg': 'Гравець {} скасував свій запит в челенджу до вас',
     }
     #,
     #universal_lang: {

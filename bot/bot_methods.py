@@ -3,10 +3,11 @@ from bot.states import RET
 from telebot import TeleBot
 from telebot.types import Message
 from localization.translations import get_translation_for
-from bot.keyboards import get_keyboard_remover
+from bot.keyboards import get_keyboard_remover, get_menu_keyboard
 from functools import wraps
 from flask_mongoengine.pagination import Pagination
 from logger_settings import logger
+from config import STATES_HISTORY_LEN
 
 
 def competitor_check(message: Message, user: User, bot: TeleBot, send_message=True):
@@ -106,3 +107,69 @@ def get_opponent_and_opponent_user(competitor: Competitor) -> (Competitor, User)
     opponent: Competitor = competitor.check_opponent()
     opponent_user = User.objects(associated_with=opponent).first() if opponent else None
     return opponent, opponent_user
+
+
+def teardown_challenge(
+        competitor: Competitor,
+        message: Message,
+        user: User,
+        bot: TeleBot,
+        cause_key,
+        canceled_by_bot=True,
+        opponent: Competitor = None,
+        opponent_msg_key=None
+):
+    competitor.in_challenge_with = None
+    competitor.status = competitor.previous_status
+    competitor.previous_status = None
+    competitor.latest_challenge_received_at = None
+    competitor.save()
+
+    if opponent:
+        opponent_user = User.objects(associated_with=opponent).first()
+
+        opponent.in_challenge_with = None
+        opponent.status = opponent.previous_status
+        opponent.previous_status = None
+        opponent.latest_challenge_received_at = None
+        opponent.save()
+
+        if opponent_user:
+
+            opponent_user.dismiss_confirmed = False
+            opponent_user.states.append('MenuState')
+            if len(opponent_user.states) > STATES_HISTORY_LEN:
+                del opponent_user.states[0]
+            opponent_user.save()
+
+            if opponent_msg_key:
+                if canceled_by_bot:
+                    bot.send_message(
+                        opponent_user.user_id,
+                        f'{get_translation_for(opponent_msg_key).format(competitor.name)}.\n{get_translation_for("challenge_confirm_challenge_canceled_by_bot_msg")}',
+                        reply_markup=get_menu_keyboard(status=opponent.status),
+                        parse_mode='html'
+                    )
+                else:
+                    bot.send_message(
+                        opponent_user.user_id,
+                        f'{get_translation_for(opponent_msg_key).format(competitor.name)}',
+                        reply_markup=get_menu_keyboard(status=opponent.status),
+                        parse_mode='html'
+                    )
+
+    user.dismiss_confirmed = False
+    user.save()
+
+    if cause_key is not None:
+        if canceled_by_bot:
+            bot.send_message(
+                user.user_id,
+                f'{get_translation_for(cause_key)}.\n{get_translation_for("challenge_confirm_challenge_canceled_by_bot_msg")}'
+            )
+        else:
+            bot.send_message(
+                user.user_id,
+                f'{get_translation_for(cause_key)}'
+            )
+    return RET.GO_TO_STATE, 'MenuState', message, user

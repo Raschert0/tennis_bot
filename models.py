@@ -18,8 +18,9 @@ class COMPETITOR_STATUS:
     ACTIVE = 1
     CHALLENGE_INITIATED = 2  # When user sent challenge request to someone else
     CHALLENGE_NEED_RESPONSE = 3  # When user is answering to challenge request
-    CHALLENGE = 4
-    CHALLENGE_NEED_RESULTS_CONFIRMATION = 5
+    CHALLENGE_STARTER = 4
+    CHALLENGE_RECEIVER = 5
+    CHALLENGE_NEED_RESULTS_CONFIRMATION = 6
     PASSIVE = 6
     VACATION = 7
     INJUIRY = 8
@@ -59,6 +60,7 @@ class Config(db.Document):
 class Competitor(db.Document):
     status = db.IntField(default=COMPETITOR_STATUS.UNAUTHORIZED)
     previous_status = db.IntField()
+    previous_challenge_status = db.IntField()
     name = db.StringField(required=True)
     level = db.IntField()
     matches = db.IntField(default=0)
@@ -68,8 +70,6 @@ class Competitor(db.Document):
 
     used_vacation_time = db.IntField(default=0)
     vacation_started_at = db.DateTimeField()
-
-    dismiss_confirmed = db.BooleanField()
 
     challenges_dismissed_in_a_row = db.IntField(default=0)
     challenges_ignored = db.IntField(default=0)
@@ -133,6 +133,8 @@ class User(db.Document):
     language = db.StringField(default='uk')
 
     is_blocked = db.BooleanField(default=False)
+
+    dismiss_confirmed = db.BooleanField()
 
     associated_with = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
 

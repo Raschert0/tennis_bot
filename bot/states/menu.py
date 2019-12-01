@@ -7,7 +7,7 @@ from models import User
 
 from models import Competitor, COMPETITOR_STATUS
 from logger_settings import logger
-from bot.bot_methods import check_wrapper
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge
 from bot.settings_interface import get_config_document
 from bot.keyboards import get_menu_keyboard
 from google_integration.sheets.users import UsersSheet
@@ -27,6 +27,8 @@ class MenuState(BaseState):
             'menu_end_vacation_btn': self.end_vacation,
             'menu_end_sick_leave_btn': self.end_sick_leave,
             'menu_reply_to_challenge_request_btn': self.reply_on_challenge,
+            'menu_cancel_challenge_request_btn': self.cancel_challenge_request,
+            'menu_submit_challenge_results_btn': self.submit_results,
         }
 
     @check_wrapper
@@ -149,3 +151,73 @@ class MenuState(BaseState):
         if competitor.status != COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE:
             return RET.OK, None, None, None
         return RET.GO_TO_STATE, 'ChallengeReceivedState', message, user
+
+    @check_wrapper
+    def cancel_challenge_request(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if competitor.status != COMPETITOR_STATUS.CHALLENGE_INITIATED:
+            return RET.OK, None, None, None
+        if not user.dismiss_confirmed:
+            bot.send_message(
+                message.chat.id,
+                get_translation_for('challenge_request_cancel_confirm_msg'),
+                reply_markup=self.__base_keyboard(status=competitor.status)
+            )
+            user.dismiss_confirmed = True
+            user.save()
+            return RET.OK, None, None, None
+        else:
+            user.dismiss_confirmed = False
+            user.save()
+
+        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+        if not opponent or not opponent_user:
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'challenge_request_canceled_to_competitor_msg',
+                canceled_by_bot=False
+            )
+        else:
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'challenge_request_canceled_to_competitor_msg',
+                canceled_by_bot=False,
+                opponent=opponent,
+                opponent_msg_key='challenge_request_canceled_to_opponent_msg'
+            )
+
+    @check_wrapper
+    def submit_results(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if competitor.status not in (COMPETITOR_STATUS.CHALLENGE_STARTER, COMPETITOR_STATUS.CHALLENGE_RECEIVER):
+            return RET.OK, None, None, None
+        return RET.GO_TO_STATE, 'ChallengeSendResultsState', message, user
+
+    @check_wrapper
+    def cancel_challenge(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if competitor.status != COMPETITOR_STATUS.CHALLENGE_STARTER:
+            return RET.OK, None, None, None
+        if not user.dismiss_confirmed:
+            bot.send_message(
+                message.chat.id,
+                get_translation_for('challenge_cancel_msg'),
+                reply_markup=self.__base_keyboard(status=competitor.status)
+            )
+            user.dismiss_confirmed = True
+            user.save()
+            return RET.OK, None, None, None
+        else:
+            user.dismiss_confirmed = False
+            user.save()
+
+        pass
+        bot.send_message(
+            message.chat.id,
+            get_translation_for('challenge_cancel_request_sent_msg'),
+            reply_markup=self.__base_keyboard(status=competitor.status)
+        )
+        return RET.OK, None, None, None

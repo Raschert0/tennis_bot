@@ -1,3 +1,5 @@
+from typing import Optional, Any
+
 from . import RET, BaseState
 from localization.translations import get_translation_for
 
@@ -7,10 +9,11 @@ from models import User
 
 from models import Competitor, COMPETITOR_STATUS, Result, RESULT
 from bot.keyboards import get_challenge_confirmation_keyboard, get_menu_keyboard
-from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge
 from bot.settings_interface import get_config_document
 from datetime import datetime
 from pytz import timezone
+from config import STATES_HISTORY_LEN
 
 
 class ChallengeReceivedState(BaseState):
@@ -22,21 +25,6 @@ class ChallengeReceivedState(BaseState):
             'challenge_received_dismiss_btn': self.dismiss_button,
             'back_btn': self.back_button
         }
-
-    @staticmethod
-    def teardown_challenge(competitor: Competitor, message: Message, user: User, bot: TeleBot, cause_key: str):
-        competitor.in_challenge_with = None
-        competitor.status = competitor.previous_status
-        competitor.previous_status = None
-        competitor.dismiss_confirmed = False
-        competitor.latest_challenge_received_at = None
-        competitor.save()
-
-        bot.send_message(
-            user.user_id,
-            f'{get_translation_for(cause_key)}.\n{get_translation_for("challenge_confirm_challenge_canceled_by_bot_msg")}'
-        )
-        return RET.GO_TO_STATE, 'MenuState', message, user
 
     def form_message(self, competitor: Competitor, opponent: Competitor, opponent_user: User):
 
@@ -65,8 +53,8 @@ class ChallengeReceivedState(BaseState):
             parse_mode='html'
         )
 
-        competitor.dismiss_confirmed = False
-        competitor.save()
+        user.dismiss_confirmed = False
+        user.save()
         return RET.OK, None, None, None
 
     @check_wrapper
@@ -90,9 +78,10 @@ class ChallengeReceivedState(BaseState):
 
     @check_wrapper
     def accept_button(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        opponent_user: User
         opponent, opponent_user = get_opponent_and_opponent_user(competitor)
         if not opponent or not opponent_user:
-            return self.teardown_challenge(
+            return teardown_challenge(
                 competitor,
                 message,
                 user,
@@ -100,8 +89,8 @@ class ChallengeReceivedState(BaseState):
                 'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
             )
 
-        opponent.status = COMPETITOR_STATUS.CHALLENGE
-        competitor.status = COMPETITOR_STATUS.CHALLENGE
+        opponent.status = COMPETITOR_STATUS.CHALLENGE_STARTER
+        competitor.status = COMPETITOR_STATUS.CHALLENGE_RECEIVER
         competitor.latest_challenge_received_at = None
 
         n = datetime.now(tz=timezone('Europe/Kiev'))
@@ -112,19 +101,22 @@ class ChallengeReceivedState(BaseState):
         competitor.save()
 
         config = get_config_document()
-        if opponent_user:
-            bot.send_message(
-                opponent_user.user_id,
-                get_translation_for('challenge_confirm_challenge_accepted_msg').format(
-                    f'<a href="tg://user?id="{user.user_id}">{competitor.name}</a>',
-                    config.time_to_play_challenge
-                )
-            )
-            opponent_user.states.append('MenuState')
-            if len(opponent_user.states) > config.STATES_HISTORY_LEN:
-                del opponent_user.states[0]
-            opponent_user.save()
+        bot.send_message(
+            opponent_user.user_id,
+            get_translation_for('challenge_confirm_challenge_accepted_msg').format(
+                f'<a href="tg://user?id="{user.user_id}">{competitor.name}</a>',
+                config.time_to_play_challenge
+            ),
+            reply_markup=get_menu_keyboard(status=opponent.status)
+        )
+        opponent_user.dismiss_confirmed = False
+        opponent_user.states.append('MenuState')
+        if len(opponent_user.states) > STATES_HISTORY_LEN:
+            del opponent_user.states[0]
+        opponent_user.save()
 
+        user.dismiss_confirmed = False
+        user.save()
         bot.send_message(
             user.user_id,
             get_translation_for(
@@ -139,21 +131,29 @@ class ChallengeReceivedState(BaseState):
     @check_wrapper
     def dismiss_button(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
         defeat = False
-        if competitor.previous_status == COMPETITOR_STATUS.PASSIVE:
-            if not competitor.dismiss_confirmed:
+        if not user.dismiss_confirmed:
+            if competitor.previous_status == COMPETITOR_STATUS.PASSIVE:
                 bot.send_message(
                     message.chat.id,
                     get_translation_for('challenge_confirm_technical_defeat')
                 )
-                competitor.dismiss_confirmed = True
-                competitor.save()
-                return RET.OK, None, None, None
             else:
+                bot.send_message(
+                    message.chat.id,
+                    get_translation_for('challenge_received_dismiss_confirm_msg')
+                )
+            user.dismiss_confirmed = True
+            user.save()
+            return RET.OK, None, None, None
+        else:
+            user.dismiss_confirmed = False
+            user.save()
+            if competitor.previous_status == COMPETITOR_STATUS.PASSIVE:
                 defeat = True
 
         opponent, opponent_user = get_opponent_and_opponent_user(competitor)
         if not opponent or not opponent_user:
-            return self.teardown_challenge(
+            return teardown_challenge(
                 competitor,
                 message,
                 user,
@@ -192,7 +192,6 @@ class ChallengeReceivedState(BaseState):
             competitor.status = COMPETITOR_STATUS.PASSIVE
             competitor.challenges_dismissed_in_a_row = 1
         competitor.challenges_dismissed_total = competitor.challenges_dismissed_total + 1 if competitor.challenges_dismissed_total is not None else 1
-        competitor.dismiss_confirmed = False
         competitor.latest_challenge_received_at = None
         competitor.save()
 
@@ -204,7 +203,7 @@ class ChallengeReceivedState(BaseState):
                 reply_markup=get_menu_keyboard(status=opponent.status)
             )
             opponent_user.states.append('MenuState')
-            if len(opponent_user.states) > config.STATES_HISTORY_LEN:
+            if len(opponent_user.states) > STATES_HISTORY_LEN:
                 del opponent_user.states[0]
             opponent_user.save()
 

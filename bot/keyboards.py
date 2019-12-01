@@ -28,10 +28,16 @@ def get_menu_keyboard(**kwargs):
     elif status == COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE:
         keyboard.row(get_translation_for('menu_info_btn'))
         keyboard.row(get_translation_for('menu_reply_to_challenge_request_btn'))
-    elif status == COMPETITOR_STATUS.CHALLENGE:
+    elif status == COMPETITOR_STATUS.CHALLENGE_STARTER:
         keyboard.row(get_translation_for('menu_info_btn'))
         keyboard.row(get_translation_for('menu_submit_challenge_results_btn'))
         keyboard.row(get_translation_for('menu_cancel_challenge_btn'))
+    elif status == COMPETITOR_STATUS.CHALLENGE_RECEIVER:
+        keyboard.row(get_translation_for('menu_info_btn'))
+        keyboard.row(get_translation_for('menu_submit_challenge_results_btn'))
+    elif status == COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION:
+        keyboard.row(get_translation_for('menu_info_btn'))
+        pass
     elif status == COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION:
         keyboard.row(get_translation_for('menu_info_btn'))
         keyboard.row(get_translation_for('menu_accept_challenge_results_btn'))

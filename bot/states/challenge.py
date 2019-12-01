@@ -18,6 +18,7 @@ from werkzeug.exceptions import NotFound
 from bot.settings_interface import get_config_document
 from datetime import datetime
 from pytz import timezone
+from config import STATES_HISTORY_LEN
 
 
 class ChallengeSendState(BaseState):
@@ -225,7 +226,7 @@ class ChallengeSendState(BaseState):
                             # TODO
                         )
                         opponent_user.states.append('ChallengeReceivedState')
-                        if len(opponent_user.states) > config.STATES_HISTORY_LEN:
+                        if len(opponent_user.states) > STATES_HISTORY_LEN:
                             del opponent_user.states[0]
                         opponent_user.save()
                     elif opponent.status == COMPETITOR_STATUS.PASSIVE:
@@ -241,7 +242,7 @@ class ChallengeSendState(BaseState):
                             # TODO
                         )
                         opponent_user.states.append('ChallengeReceivedState')
-                        if len(opponent_user.states) > config.STATES_HISTORY_LEN:
+                        if len(opponent_user.states) > STATES_HISTORY_LEN:
                             del opponent_user.states[0]
                         opponent_user.save()
                     else:
@@ -263,6 +264,9 @@ class ChallengeSendState(BaseState):
                     competitor.in_challenge_with = opponent
                     competitor.latest_challenge_sent_to = opponent
                     competitor.save()
+
+                    user.dismiss_confirmed = False
+                    user.save()
                     return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
 
                 except ValidationError:
