@@ -13,6 +13,8 @@ from bot.states.authentication import AuthenticationState
 from bot.states.menu import MenuState
 from bot.states.challenge import ChallengeSendState
 from bot.states.challenge_received import ChallengeReceivedState
+from bot.states.challenge_confirm_results import ChallengeConfirmResultsState
+from bot.states.challenge_send_results import ChallengeSendResultsState
 
 
 class BotHandlers(object):
@@ -26,7 +28,9 @@ class BotHandlers(object):
             MenuState,
             AuthenticationState,
             ChallengeSendState,
-            ChallengeReceivedState
+            ChallengeReceivedState,
+            ChallengeConfirmResultsState,
+            ChallengeSendResultsState
         )
         self.__start_handling()
 

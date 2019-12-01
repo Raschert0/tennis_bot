@@ -220,7 +220,7 @@ class Localization(db.Document):
 
 class HighLevelLogs(db.Document):
     date = db.DateTimeField(default=datetime.utcnow)
-    severity = db.StringField
+    severity = db.StringField(choices=(LOG_SEVERITY.INFO, LOG_SEVERITY.WARNING, LOG_SEVERITY.ERROR, LOG_SEVERITY.EXCEPTION))
     log = db.StringField(required=True)
 
     @staticmethod
