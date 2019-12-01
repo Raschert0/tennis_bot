@@ -103,7 +103,7 @@ class ChallengeReceivedState(BaseState):
         config = get_config_document()
         bot.send_message(
             opponent_user.user_id,
-            get_translation_for('challenge_confirm_challenge_accepted_msg').format(
+            get_translation_for('challenge_confirm_challenge_accepted_opponent_msg').format(
                 f'<a href="tg://user?id="{user.user_id}">{competitor.name}</a>',
                 config.time_to_play_challenge
             ),

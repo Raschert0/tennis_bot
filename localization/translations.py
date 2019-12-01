@@ -53,6 +53,7 @@ LANGUAGES_DICTIONARY = {
         'challenge_cancellation_denied_opponent_msg': 'Ваш опонент {} відхилив скасування челенджа',
         'challenge_cancellation_denied_msg': 'Ви відхилили пропозицію {} стосовно скасування челенджа',
         'challenge_cancellation_in_progress_msg': 'Ваш опонент {} вже розглядає пропозицію скасування челенджа',
+        'challenge_cancellation_opponent_is_verifying_results_msg': 'Ваш опонент {} наразі розглядає результати челенджу. Зараз скасування челенджу неможливе',
 
         'challenge_cancel_request_opponent_confirm_btn': 'Підтвердити скасування челенджа',
         'challenge_cancel_request_opponent_dismiss_btn': 'Відхилити скасування челенджа',
@@ -69,6 +70,7 @@ LANGUAGES_DICTIONARY = {
         'vacation_days_used_str': 'Використано днів відпустки',
 
         'back_btn': 'Назад',
+        'to_menu_btn': 'У меню',
 
         'not_found_str': 'не знайдено',
 
@@ -94,6 +96,24 @@ LANGUAGES_DICTIONARY = {
         'challenge_request_cancel_confirm_msg': 'Підтвердіть скасування запиту на челендж. Для цього настиніть ще раз на кнопку.',
         'challenge_request_canceled_to_competitor_msg': 'Ви скасували свій запит на челендж',
         'challenge_request_canceled_to_opponent_msg': 'Гравець {} скасував свій запит в челенджу до вас',
+
+        'results_clear_btn': 'Очистити результат',
+        'results_confirm_btn': 'Підтвердити результат',
+        'results_scores_confirm_btn': 'Зафіксувати очки',
+
+        'results_enter_results_msg': 'Уведіть результати челенджу',
+        'result_current_str': 'Поточний результат',
+        'result_match_result_str': 'Результат матчу',
+        'result_challenge_canceled_str': 'челендж скасовано',
+        'results_maximum_scores_entered_msg': 'Ви вже ввели результати 5-и сетів. Щоб очистити попередні результати скористайтеся кнопкою "Назад" або "Очистити"',
+        'results_incorrect_score_msg': 'Введено некоректний результат',
+        'result_scores_count_must_be_odd_msg': 'Для збереження необхідно ввести парну кількість результатів',
+        'result_competitor_win_btn': 'Переміг я',
+        'result_opponent_win_btn': 'Переміг мій опонент',
+        'result_to_change_winner_press_again_str': 'Щоб змінити переможця натисніть відповідну кнопку',
+        'result_select_winner_str': 'Вкажіть, хто переміг у матчі, натиснувши відповідну кнопку',
+        'result_wins_str': 'перемагає',
+        'result_winner_must_be_specified_msg': 'Необхідно вказати переможця матчу',
     }
     #,
     #universal_lang: {

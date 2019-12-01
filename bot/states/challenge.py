@@ -10,6 +10,7 @@ from google_integration.sheets.usage_guard import guard
 from models import Competitor, COMPETITOR_STATUS
 from logger_settings import logger
 from bot.bot_methods import render_pagination, check_wrapper
+from bot.keyboards import get_challenge_confirmation_keyboard
 from bson.objectid import ObjectId
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from mongoengine.errors import ValidationError
@@ -222,8 +223,8 @@ class ChallengeSendState(BaseState):
                                 competitor.level,
                                 config.time_to_accept_challenge
                             ),
-                            reply_markup=None
-                            # TODO
+                            reply_markup=get_challenge_confirmation_keyboard(),
+                            parse_mode='html'
                         )
                         opponent_user.states.append('ChallengeReceivedState')
                         if len(opponent_user.states) > STATES_HISTORY_LEN:
@@ -238,8 +239,8 @@ class ChallengeSendState(BaseState):
                                 competitor.level,
                                 config.time_to_accept_challenge
                             ),
-                            reply_markup=None
-                            # TODO
+                            reply_markup=get_challenge_confirmation_keyboard(),
+                            parse_mode='html'
                         )
                         opponent_user.states.append('ChallengeReceivedState')
                         if len(opponent_user.states) > STATES_HISTORY_LEN:

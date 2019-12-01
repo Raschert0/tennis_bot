@@ -147,6 +147,8 @@ class BotHandlers(object):
             ret_tuple[3] - user or None
         :return:
         """
+        assert ret_tuple is not None, 'DETECTED STATE WITHOUT RETURN VALUE'
+
         if ret_tuple[0] == RET.OK:
             return
 

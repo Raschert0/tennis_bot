@@ -220,6 +220,13 @@ class MenuState(BaseState):
                 reply_markup=self.__base_keyboard(status=competitor.status)
             )
             return RET.OK, None, None, None
+        if opponent.status == COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION:
+            bot.send_message(
+                user.user_id,
+                get_translation_for('challenge_cancellation_opponent_is_verifying_results_msg').format(opponent.name),
+                reply_markup=self.__base_keyboard(status=competitor.status)
+            )
+            return RET.OK, None, None, None
 
         if not user.dismiss_confirmed:
             bot.send_message(

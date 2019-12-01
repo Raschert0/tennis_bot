@@ -125,6 +125,16 @@ class Competitor(db.Document):
     }
 
 
+class Result(db.Document):
+    player_a = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
+    player_b = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
+    scores = db.ListField(db.IntField())
+    result = db.IntField()
+    confirmed = db.BooleanField()
+
+    meta = {'strict': False}
+
+
 class User(db.Document):
     user_id = db.IntField(required=True)
     user_id_s = db.StringField()
@@ -139,6 +149,7 @@ class User(db.Document):
     dismiss_confirmed = db.BooleanField()
 
     associated_with = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
+    current_result = db.LazyReferenceField('Result', reverse_delete_rule=RDR.NULLIFY)
 
     def check_association(self):
         if not self.associated_with:
@@ -150,19 +161,20 @@ class User(db.Document):
             self.save()
             return False
 
+    def check_result(self):
+        if not self.current_result:
+            return False
+        try:
+            return self.current_result.fetch()
+        except DoesNotExist:
+            self.current_result = None
+            self.save()
+            return False
+
     meta = {'strict': False}
 
     def __repr__(self):
         return f'User ({self.user_id} {self.username} {self.first_name} {self.last_name})'
-
-
-class Result(db.Document):
-    player_a = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
-    player_b = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
-    scores = db.ListField(db.StringField())
-    result = db.IntField()
-
-    meta = {'strict': False}
 
 
 class Administrator(db.Document):

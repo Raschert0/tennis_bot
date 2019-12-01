@@ -59,3 +59,25 @@ def get_challenge_confirmation_keyboard(**kwargs):
     )
     keyboard.row(get_translation_for('back_btn'))
     return keyboard
+
+
+def get_results_keyboard(**kwargs):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=4)
+    if kwargs.get('confirmation_stage'):
+        keyboard.row(
+            get_translation_for('result_competitor_win_btn'),
+            get_translation_for('result_opponent_win_btn')
+        )
+        keyboard.row(
+            get_translation_for('results_confirm_btn')
+        )
+    else:
+        for i in range(17):
+            keyboard.add(str(i))
+        keyboard.row(get_translation_for('results_scores_confirm_btn'))
+    keyboard.row(
+        get_translation_for('to_menu_btn'),
+        get_translation_for('back_btn'),
+        get_translation_for('results_clear_btn')
+    )
+    return keyboard
