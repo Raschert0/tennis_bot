@@ -43,7 +43,6 @@ from admin.views import admin_blueprint, admin, login
 from flask import Flask
 from config import *
 from models import db
-from localization.translations import create_translation
 
 
 app = Flask(PROJECT_NAME)
@@ -55,7 +54,7 @@ app.register_blueprint(bot_blueprint)
 app.register_blueprint(admin_blueprint)
 admin.init_app(app)
 login.init_app(app)
-create_translation()
+#create_translation()
 
 
 if __name__ == "__main__":

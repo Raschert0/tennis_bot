@@ -16,7 +16,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from mongoengine.errors import ValidationError
 from helpers import to_int
 from werkzeug.exceptions import NotFound
-from bot.settings_interface import get_config_document
+from bot.settings_interface import get_config
 from datetime import datetime
 from pytz import timezone
 from config import STATES_HISTORY_LEN
@@ -227,7 +227,7 @@ class ChallengeSendState(BaseState):
                         )
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
 
-                    config = get_config_document()
+                    config = get_config()
                     if opponent.status == COMPETITOR_STATUS.ACTIVE:
                         bot.send_message(
                             opponent_user.user_id,

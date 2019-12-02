@@ -8,7 +8,7 @@ from models import User
 from models import Competitor, COMPETITOR_STATUS
 from logger_settings import logger
 from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge
-from bot.settings_interface import get_config_document
+from bot.settings_interface import get_config
 from bot.keyboards import get_menu_keyboard
 from google_integration.sheets.users import UsersSheet
 from datetime import datetime, timedelta
@@ -55,7 +55,7 @@ class MenuState(BaseState):
 
     @check_wrapper
     def info_btn(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
-        config = get_config_document()
+        config = get_config()
         info = f'<b>{competitor.name}</b>\n' \
                f'{get_translation_for("info_status_str")}: {Competitor.status_code_to_str_dict[competitor.status]}\n' \
                f'{get_translation_for("info_level_str")}: {competitor.level or get_translation_for("not_found_str")}\n' \
@@ -76,7 +76,7 @@ class MenuState(BaseState):
     def go_on_vacation(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
         if competitor.status not in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
             return RET.OK, None, None, None
-        config = get_config_document()
+        config = get_config()
         if timedelta(seconds=competitor.used_vacation_time).days >= config.vacation_time:
             bot.send_message(
                 message.chat.id,

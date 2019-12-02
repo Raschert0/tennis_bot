@@ -3,11 +3,11 @@ from flask_admin.contrib.mongoengine import ModelView
 from flask_admin import Admin, BaseView, expose
 from flask_admin.form import rules
 from flask_login import LoginManager, current_user, login_user, logout_user
-from models import User, Administrator, Competitor, RESULT, Result, HighLevelLogs
+from models import User, Administrator, Competitor, RESULT, Result, HighLevelLogs, Config
 from admin.forms import LoginForm
 import admin.methods as methods
 from threading import Thread
-from localization.views import LocalizationView
+#from localization.views import LocalizationView
 
 admin_blueprint = Blueprint('admin_bp', __name__)
 login = LoginManager()
@@ -82,10 +82,13 @@ class MyUserView(ModelView):
     column_searchable_list = ['username', 'first_name', 'last_name']
 
     # can_delete = False
+    can_create = False
 
     can_set_page_size = True
 
     column_filters = ['username', 'first_name', 'last_name']
+    column_exclude_list = ['states', 'user_id_s', 'dismiss_confirmed', 'is_blocked', 'current_result', 'associated_with']
+    form_excluded_columns = ['states', 'user_id_s', 'dismiss_confirmed', 'is_blocked', 'current_result', 'associated_with']
 
     def is_accessible(self):
         return current_user.is_authenticated
@@ -160,4 +163,5 @@ admin.add_view(CompetitorView(Competitor, name='Учасники турніру'
 admin.add_view(ResultView(Result, name='Результати'))
 admin.add_view(LogsView(HighLevelLogs, name='Логи', category='Налаштування'))
 admin.add_view(MyAdminView(Administrator, name='Адміни', category='Налаштування'))
-admin.add_view(LocalizationView(name="Переклад", category='Налаштування', endpoint="localization"))
+#admin.add_view(LocalizationView(name="Переклад", category='Налаштування', endpoint="localization"))
+#admin.add_view(ConfigView(Config, name='Конфігурація', category='Налаштування'))

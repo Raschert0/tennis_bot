@@ -1,8 +1,7 @@
-from models import User
+from models import User, Competitor, COMPETITOR_STATUS
 from logger_settings import logger
 from bot.states import RET
 from localization.translations import get_translation_for
-from localization.translations import create_translation
 from helpers import user_last_state
 from telebot.types import Message, CallbackQuery, User as TGUser
 import telebot
@@ -68,6 +67,28 @@ class BotHandlers(object):
                                       get_translation_for('blocked_msg')
                                       )
                 return True
+
+        @self.bot.message_handler(commands=['debug_forget_me'], func=for_private_chats_only)
+        def debug_delete_mes(message: Message):
+            try:
+                user = self.__get_or_register_user(message.chat.id, message.from_user)
+                if len(user.states):
+                    associated_with: Competitor = user.check_association()
+                    if associated_with:
+                        if associated_with.status in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
+                            associated_with.status = COMPETITOR_STATUS.UNAUTHORIZED
+                            associated_with.save()
+                    user.delete()
+                    user = self.__get_or_register_user(message.chat.id, message.from_user)
+                user.states = [self.__start_state]
+                user.save()
+
+                if blocked_check(message.chat, user):
+                    return
+
+                self.__process_message(message, user)
+            except:
+                logger.exception("Error!")
 
         @self.bot.message_handler(commands=['start'], func=for_private_chats_only)
         def send_welcome(message):
@@ -201,6 +222,6 @@ class BotHandlers(object):
 
 bot_handler = BotHandlers(config.BOT_TOKEN)
 if __name__ == '__main__':
-    create_translation()
+    #create_translation()
     bot_handler.bot.remove_webhook()
     bot_handler.bot.polling(none_stop=True)

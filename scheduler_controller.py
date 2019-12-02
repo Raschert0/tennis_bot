@@ -6,7 +6,7 @@ import atexit
 from datetime import datetime, timedelta
 from pytz import timezone
 from logger_settings import logger
-from bot.settings_interface import get_config_document
+from bot.settings_interface import get_config_document, get_config
 from helpers import mongo_time_to_local
 from models import db
 from config import PROJECT_NAME
@@ -29,14 +29,14 @@ def __scheduler_run(cease_run, interval=60):
         tz = timezone('Europe/Kiev')
         now = datetime.now(tz=tz)
         tbot = None
-        config = get_config_document()
+        bconfig = get_config()
         for competitor in Competitor.objects(status=COMPETITOR_STATUS.VACATION):
             if competitor.vacation_started_at:
                 delta = now - mongo_time_to_local(competitor.vacation_started_at, tz)
                 delta = delta.total_seconds()
                 if competitor.used_vacation_time is not None:
                     delta += competitor.used_vacation_time
-                if timedelta(seconds=delta).days > config.vacation_time:
+                if timedelta(seconds=delta).days > bconfig.vacation_time:
                     competitor.status = competitor.previous_status or COMPETITOR_STATUS.ACTIVE
                     competitor.save()
                     relevant_user: User = User.objects(associated_with=competitor).first()
@@ -69,8 +69,8 @@ def __scheduler_run(cease_run, interval=60):
             config.save()
 
     def check_challenges():
-        config = get_config_document()
-        n = datetime.now()
+        bconfig = get_config()
+        n = datetime.now(tz=tz)
         tbot = None
         for competitor in Competitor.objects(status=COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE):
             try:
@@ -80,7 +80,7 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.save()
                     continue
                 cs = mongo_time_to_local(competitor.challenge_started_at, tz)
-                if (cs - n) > timedelta(days=max(0, config.time_to_accept_challenge-config.accept_challenge_reminder)) and not competitor.challenge_remainder_sent:
+                if (cs - n) > timedelta(days=max(0, bconfig.time_to_accept_challenge-bconfig.accept_challenge_reminder)) and not competitor.challenge_remainder_sent:
                     if tbot is None:
                         tbot = TeleBot(PROJECT_NAME, threaded=False)
                     cuser = User.objects(associated_with=competitor).first()
@@ -88,16 +88,17 @@ def __scheduler_run(cease_run, interval=60):
                         continue
                     tbot.send_message(
                         cuser.user_id,
-                        get_translation_for('remainder_challenge_accept_msg').format(config.accept_challenge_reminder)
+                        get_translation_for('remainder_challenge_accept_msg').format(bconfig.accept_challenge_reminder)
                     )
                     competitor.challenge_remainder_sent = True
                     competitor.save()
-                elif (cs-n) > timedelta(days=config.time_to_accept_challenge):
+                elif (cs-n) > timedelta(days=bconfig.time_to_accept_challenge):
                     if tbot is None:
                         tbot = TeleBot(PROJECT_NAME, threaded=False)
                     cuser = User.objects(associated_with=competitor).first()
+                    skip_comp = False
                     if cuser is None:
-                        continue
+                        skip_comp = True
 
                     opponent_user: User
                     opponent, opponent_user = get_opponent_and_opponent_user(competitor)
@@ -118,31 +119,32 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.challenges_ignored_total = (
                                 competitor.challenges_ignored_total + 1) if competitor.challenges_ignored_total is not None else 1
                     competitor.matches = competitor.matches + 1 if competitor.matches is not None else 1
-                    if competitor.challenges_ignored >= config.maximum_challenges_ignored:
+                    if competitor.challenges_ignored >= bconfig.maximum_challenges_ignored:
                         competitor.status = COMPETITOR_STATUS.INACTIVE
                     competitor.save()
 
                     t = get_translation_for('challenge_was_ignored_msg').format(
                             competitor.challenges_ignored,
-                            config.maximum_challenges_ignored
+                            bconfig.maximum_challenges_ignored
                         )
 
-                    if competitor.status == COMPETITOR_STATUS.INACTIVE:
-                        t += '.\n<b>'
-                        t += get_translation_for('user_was_moved_to_inactive')
-                        t += '</b>'
-                    elif prev_level:
-                        t += '.\n'
-                        t += get_translation_for('your_level_changed_str').format(new_level, prev_level)
+                    if not skip_comp:
+                        if competitor.status == COMPETITOR_STATUS.INACTIVE:
+                            t += '.\n<b>'
+                            t += get_translation_for('user_was_moved_to_inactive')
+                            t += '</b>'
+                        elif prev_level:
+                            t += '.\n'
+                            t += get_translation_for('your_level_changed_str').format(new_level, prev_level)
 
-                    tbot.send_message(
-                        cuser.user_id,
-                        t,
-                        reply_markup=get_menu_keyboard(
-                            status=competitor.status
-                        ),
-                        parse_mode='html'
-                    )
+                        tbot.send_message(
+                            cuser.user_id,
+                            t,
+                            reply_markup=get_menu_keyboard(
+                                status=competitor.status
+                            ),
+                            parse_mode='html'
+                        )
 
                     if opponent:
                         opponent.in_challenge_with = None
@@ -182,7 +184,7 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.save()
                     continue
                 cs = mongo_time_to_local(competitor.challenge_started_at, tz)
-                if (cs - n) > timedelta(days=max(0, config.time_to_play_challenge-config.challenge_play_reminder)):
+                if (cs - n) > timedelta(days=max(0, bconfig.time_to_play_challenge-bconfig.challenge_play_reminder)):
                     if tbot is None:
                         tbot = TeleBot(PROJECT_NAME, threaded=False)
                     cuser = User.objects(associated_with=competitor).first()
@@ -190,11 +192,11 @@ def __scheduler_run(cease_run, interval=60):
                         continue
                     tbot.send_message(
                         cuser.user_id,
-                        get_translation_for('remainder_challenge_play_msg').format(config.challenge_play_reminder)
+                        get_translation_for('remainder_challenge_play_msg').format(bconfig.challenge_play_reminder)
                     )
                     competitor.challenge_remainder_sent = True
                     competitor.save()
-                elif (cs - n) > timedelta(days=config.time_to_play_challenge):
+                elif (cs - n) > timedelta(days=bconfig.time_to_play_challenge):
                     # TODO
                     pass
             except:

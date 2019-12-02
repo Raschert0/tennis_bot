@@ -1,7 +1,7 @@
 from .helpers import retrieve_data, update_data
 from models import Competitor, COMPETITOR_STATUS
 from helpers import to_int
-from bot.settings_interface import get_config_document
+from bot.settings_interface import get_config
 from logger_settings import logger
 
 
@@ -9,7 +9,7 @@ class UsersSheet:
 
     @staticmethod
     def get_all_users():
-        cfg = get_config_document()
+        cfg = get_config()
         values = retrieve_data(
             cfg.spreadsheet_id,
             f'{cfg.spreadsheet_users_sheet}!A2:H'
@@ -33,7 +33,7 @@ class UsersSheet:
                     legacy_number=row[0]
                 ).first()
                 if existing_data is None:
-                    cfg = get_config_document()
+                    cfg = get_config()
                     new_data = Competitor(
                         legacy_number=row[0],
                         name=row[1],
@@ -57,7 +57,7 @@ class UsersSheet:
 
     @staticmethod
     def insert_competitor_in_table(data: Competitor, check_for_existence=False, at_row=None):
-        cfg = get_config_document()
+        cfg = get_config()
         if check_for_existence:
             pass
         data.reload()
@@ -86,7 +86,7 @@ class UsersSheet:
 
     @staticmethod
     def update_competitor_status(competitor: Competitor, upsert=False):
-        cfg = get_config_document()
+        cfg = get_config()
         data = UsersSheet.get_all_users()
         updated = False
         row_number = 1

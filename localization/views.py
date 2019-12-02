@@ -1,6 +1,6 @@
 from flask import url_for, request, redirect
 from flask_admin import BaseView, expose
-from localization.translations import update_translation_for, __get_translation_for as trans_for, LANGUAGES_DICTIONARY
+from localization.translations import LANGUAGES_DICTIONARY, update_translation_for, __get_translation_for as trans_for
 
 
 class LocalizationView(BaseView):

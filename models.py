@@ -44,18 +44,18 @@ class LOG_SEVERITY:
 
 class Config(db.Document):
     config_id = db.StringField()
-    vacation_time = db.IntField(default=14)
-    time_to_accept_challenge = db.IntField(default=3)
-    accept_challenge_reminder = db.IntField(default=2)
-    time_to_play_challenge = db.IntField(default=10)
-    challenge_play_reminder = db.IntField(default=3)
-    maximum_level_difference = db.IntField(default=3)
-    maximum_challenges_ignored = db.IntField(default=3)
-
-    spreadsheet_id = db.StringField(default='1TE6stp-x7z-O7Rp3Twtg5oJ8Ytmlx7TTqRgDZ5bx39k')
-    spreadsheet_users_sheet = db.StringField(default='Игроки')
-
-    group_chat_id = db.IntField()
+    # vacation_time = db.IntField(default=14)
+    # time_to_accept_challenge = db.IntField(default=3)
+    # accept_challenge_reminder = db.IntField(default=2)
+    # time_to_play_challenge = db.IntField(default=10)
+    # challenge_play_reminder = db.IntField(default=3)
+    # maximum_level_difference = db.IntField(default=3)
+    # maximum_challenges_ignored = db.IntField(default=3)
+    #
+    # spreadsheet_id = db.StringField(default='1TE6stp-x7z-O7Rp3Twtg5oJ8Ytmlx7TTqRgDZ5bx39k')
+    # spreadsheet_users_sheet = db.StringField(default='Игроки')
+    #
+    # group_chat_id = db.IntField()
 
     last_daily_check = db.DateTimeField(default=datetime.utcnow())
 

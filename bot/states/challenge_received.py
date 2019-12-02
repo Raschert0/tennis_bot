@@ -10,7 +10,7 @@ from models import User
 from models import Competitor, COMPETITOR_STATUS, Result, RESULT
 from bot.keyboards import get_challenge_confirmation_keyboard, get_menu_keyboard
 from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge
-from bot.settings_interface import get_config_document
+from bot.settings_interface import get_config
 from datetime import datetime
 from pytz import timezone
 from config import STATES_HISTORY_LEN
@@ -101,7 +101,7 @@ class ChallengeReceivedState(BaseState):
         opponent.save()
         competitor.save()
 
-        config = get_config_document()
+        config = get_config()
         bot.send_message(
             opponent_user.user_id,
             get_translation_for('challenge_confirm_challenge_accepted_opponent_msg').format(
