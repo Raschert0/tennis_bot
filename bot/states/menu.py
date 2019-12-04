@@ -14,6 +14,7 @@ from google_integration.sheets.users import UsersSheet
 from datetime import datetime, timedelta
 from pytz import timezone
 from helpers import mongo_time_to_local
+from google_integration.sheets.logs import LogsSheet
 
 
 class MenuState(BaseState):
@@ -175,6 +176,9 @@ class MenuState(BaseState):
             user.save()
 
         opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+        LogsSheet.glog(
+            get_translation_for('gsheet_log_player_canceled_challenge_for_player').format(competitor.name)
+        )
         if not opponent or not opponent_user:
             return teardown_challenge(
                 competitor,

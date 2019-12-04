@@ -8,6 +8,7 @@ from models import User
 from models import Competitor, COMPETITOR_STATUS, Result, RESULT
 from bot.keyboards import get_result_confirmation_keyboard, get_menu_keyboard
 from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, render_result
+from bot.settings_interface import get_config
 from logger_settings import logger
 from config import STATES_HISTORY_LEN
 from datetime import datetime
@@ -190,6 +191,25 @@ class ChallengeConfirmResultsState(BaseState):
 
         res.reload()
         ResultsSheet.upload_result(res)
+
+        config = get_config()
+        if config.group_chat_id:
+            score = res.repr_score()
+            gmsg = get_translation_for('group_chat_match_result_msg').format(opponent.name,
+                                                                             competitor.name,
+                                                                             score)
+            if res.level_change:
+                gmsg += '.\n'
+                gmsg += get_translation_for('group_chat_players_level_changed').format(res.level_change)
+
+            try:
+                bot.send_message(
+                    config.group_chat_id,
+                    gmsg,
+                    parse_mode='html'
+                )
+            except:
+                logger.exception('Exception occurred while sending message to group chat')
 
         return RET.GO_TO_STATE, 'MenuState', message, user
 

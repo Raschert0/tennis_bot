@@ -152,6 +152,20 @@ class Result(db.Document):
         RESULT.DRAW: 'Draw'
     }
 
+    def repr_score(self):
+        score = None
+        score_set = None
+        for s in self.scores:
+            if not score_set:
+                score_set = f'{s}-'
+            else:
+                if score:
+                    score += f', {score_set}{s}'
+                else:
+                    score = f'{score_set}{s}'
+                score_set = None
+        return score
+
 
 class User(db.Document):
     user_id = db.IntField(required=True)

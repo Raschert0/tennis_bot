@@ -139,6 +139,15 @@ LANGUAGES_DICTIONARY = {
 
         'gsheet_technical_win_ignored_str': 'челендж проігноровано',
         'gsheet_technical_win_dismissed_str': 'повторна відмова',
+
+        'gsheet_log_player_created_challenge_for_player': 'Гравець {} надіслав челендж гравцю {}',
+        'gsheet_log_player_canceled_challenge_for_player': 'Гравець {} скасував свій челендж',
+        'gsheet_log_player_accepted_challenge_from_player': 'Гравець {} прийняв челендж гравця {}',
+        'gsheet_log_player_dismissed_challenge_from_player': 'Гравець {} відхилив челендж гравцю {}',
+
+        'group_chat_technical_win_report_msg': 'Гравець {} отримує технічну перемогу над гравцем {}',
+        'group_chat_match_result_msg': 'Гравець {} виграє у гравця {} із рахунком: {}',
+        'group_chat_players_level_changed': 'Зміна рівнів гравців: {}',
     }
 }
 

@@ -58,17 +58,7 @@ class ResultsSheet:
 
             winner = result.player_a.fetch() if result.result == RESULT.A_WINS else result.player_b.fetch()
             looser = result.player_b.fetch() if result.result == RESULT.A_WINS else result.player_a.fetch()
-            score = None
-            score_set = None
-            for s in result.scores:
-                if not score_set:
-                    score_set = f'{s}-'
-                else:
-                    if score:
-                        score += f', {score_set}{s}'
-                    else:
-                        score = f'{score_set}{s}'
-                    score_set = None
+            score = result.repr_score()
 
             update_data(
                 cfg.spreadsheet_id,

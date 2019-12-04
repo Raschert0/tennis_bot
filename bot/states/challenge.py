@@ -6,6 +6,7 @@ from telebot.types import Message, CallbackQuery
 from models import User
 
 from google_integration.sheets.users import UsersSheet
+from google_integration.sheets.logs import LogsSheet
 from google_integration.sheets.usage_guard import guard
 from models import Competitor, COMPETITOR_STATUS
 from logger_settings import logger
@@ -288,6 +289,10 @@ class ChallengeSendState(BaseState):
                         callback.message.chat.id,
                         get_translation_for('challenge_sent_msg').format(opponent_user.user_id, opponent.name),
                         parse_mode='html'
+                    )
+
+                    LogsSheet.glog(
+                        get_translation_for('gsheet_log_player_created_challenge_for_player').format(competitor.name, opponent.name)
                     )
 
                     return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user

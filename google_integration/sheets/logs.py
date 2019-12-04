@@ -31,7 +31,7 @@ class LogsSheet:
         return values
 
     @staticmethod
-    def glog(text: str, severity: logging.INFO, at_row=None):
+    def glog(text: str, severity=logging.INFO, at_row=None):
         try:
             cfg = get_config()
             if not cfg.spreadsheet_logs_sheet:

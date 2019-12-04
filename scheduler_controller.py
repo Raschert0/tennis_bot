@@ -107,11 +107,30 @@ def __scheduler_run(cease_run, interval=60):
                     opponent, opponent_user = get_opponent_and_opponent_user(competitor)
 
                     prev_level, new_level = None, None
+                    level_change = None
                     if opponent and opponent.level > competitor.level:
                         new_level = competitor.level
                         prev_level = opponent.level
                         level_change = f'{prev_level}->{new_level}'
                         ResultsSheet.upload_canceled_result(opponent, competitor, level_change, was_ignored=True)
+
+                    if opponent:
+                        config = get_config()
+                        if config.group_chat_id:
+                            gmsg = get_translation_for('group_chat_technical_win_report_msg').format(opponent.name,
+                                                                                                     competitor.name)
+                            if level_change:
+                                gmsg += '.\n'
+                                gmsg += get_translation_for('group_chat_players_level_changed').format(level_change)
+
+                            try:
+                                tbot.send_message(
+                                    config.group_chat_id,
+                                    gmsg,
+                                    parse_mode='html'
+                                )
+                            except:
+                                logger.exception('Exception occurred while sending message to group chat')
 
                     competitor.in_challenge_with = None
                     competitor.status = competitor.previous_status

@@ -15,6 +15,8 @@ from datetime import datetime
 from pytz import timezone
 from config import STATES_HISTORY_LEN
 from google_integration.sheets.matches import ResultsSheet
+from google_integration.sheets.logs import LogsSheet
+from logger_settings import logger
 
 
 class ChallengeReceivedState(BaseState):
@@ -128,6 +130,11 @@ class ChallengeReceivedState(BaseState):
             ),
             parse_mode='html'
         )
+
+        LogsSheet.glog(
+            get_translation_for('gsheet_log_player_accepted_challenge_from_player').format(competitor.name, opponent.name)
+        )
+
         return RET.GO_TO_STATE, 'MenuState', message, user
 
     @check_wrapper
@@ -170,12 +177,29 @@ class ChallengeReceivedState(BaseState):
         if defeat:
             opponent.wins = opponent.wins + 1 if opponent.wins is not None else 1
             opponent.matches = opponent.matches + 1 if opponent.matches is not None else 1
+            level_change = None
             if opponent.level > competitor.level:
                 level_change = f'{opponent.level}->{competitor.level}'
                 c = opponent.level
                 opponent.level = competitor.level
                 competitor.level = c
                 ResultsSheet.upload_canceled_result(opponent, competitor, level_change, was_dismissed=True)
+
+            config = get_config()
+            if config.group_chat_id:
+                gmsg = get_translation_for('group_chat_technical_win_report_msg').format(opponent.name, competitor.name)
+                if level_change:
+                    gmsg += '.\n'
+                    gmsg += get_translation_for('group_chat_players_level_changed').format(level_change)
+
+                try:
+                    bot.send_message(
+                        config.group_chat_id,
+                        gmsg,
+                        parse_mode='html'
+                    )
+                except:
+                    logger.exception('Exception occurred while sending message to group chat')
 
             result = Result(
                 player_a=opponent,
@@ -224,5 +248,9 @@ class ChallengeReceivedState(BaseState):
                 user.user_id,
                 get_translation_for('challenge_confirmation_dismissed_competitor_msg'),
             )
+
+        LogsSheet.glog(
+            get_translation_for('gsheet_log_player_dismissed_challenge_from_player').format(competitor.name, opponent.name)
+        )
 
         return RET.GO_TO_STATE, 'MenuState', message, user

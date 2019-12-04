@@ -26,4 +26,3 @@ hr_logger = setup_logger(
     f'logfile_human_readable.log',
     level=logging.INFO
 )
-hr_logger.info('test')
