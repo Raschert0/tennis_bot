@@ -11,7 +11,7 @@ from models import Competitor, COMPETITOR_STATUS
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from mongoengine.errors import ValidationError
 from werkzeug.exceptions import NotFound
-from logger_settings import logger
+from logger_settings import logger, hr_logger
 from bot.bot_methods import render_pagination
 from helpers import to_int
 
@@ -58,6 +58,7 @@ class AuthenticationState(BaseState):
                         UsersSheet.update_competitor_status(competitor)
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
                     else:
+                        hr_logger.error(f'Сталася помилка при аутентифікації користувача {user.str_repr()} - не вдається знайти в базі обраного ним гравця')
                         return RET.ANSWER_CALLBACK, get_translation_for('authentication_specified_competitor_not_found_clb'), callback, user
                 except ValidationError:
                     logger.exception(f'Incorrect competitor_id: {competitor_id} from user with user_id: {user.user_id}')
@@ -85,6 +86,7 @@ class AuthenticationState(BaseState):
                         callback.message.chat.id,
                         get_translation_for('authentication_cannot_find_competitors_msg')
                     )
+                    hr_logger.error(f'При авторизації користувача {user.str_repr()} не вдалося знайти жодного гравця')
         elif data.find('none') == 0:
             return RET.ANSWER_CALLBACK, None, callback, user
         elif data.find('refresh') == 0:
@@ -103,6 +105,7 @@ class AuthenticationState(BaseState):
                     callback.message.chat.id,
                     get_translation_for('authentication_cannot_find_competitors_msg')
                 )
+                hr_logger.error(f'При авторизації користувача {user.str_repr()} не вдалося знайти жодного гравця')
         return RET.ANSWER_CALLBACK, None, callback, user
 
     def __base_keyboard(self, **kwargs):

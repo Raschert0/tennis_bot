@@ -17,7 +17,9 @@ def post_fork(server, worker):
         from config import BOT_TOKEN
         from time import sleep
         from scheduler_controller import schedule_controller
+        from logger_settings import hr_logger
 
+        hr_logger.info('Сервіс запущено')
         bot = TeleBot(BOT_TOKEN, threaded=False)
         bot.remove_webhook()
         sleep(1)

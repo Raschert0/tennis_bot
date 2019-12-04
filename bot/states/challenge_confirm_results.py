@@ -12,6 +12,7 @@ from logger_settings import logger
 from config import STATES_HISTORY_LEN
 from datetime import datetime
 from pytz import timezone
+from google_integration.sheets.matches import ResultsSheet
 
 
 class ChallengeConfirmResultsState(BaseState):
@@ -104,7 +105,6 @@ class ChallengeConfirmResultsState(BaseState):
         res.date = datetime.now(timezone('Europe/Kiev'))
         res.player_a_s = pa.name
         res.player_b_s = pb.name
-        res.save()
 
         winner.wins = winner.wins + 1 if winner.wins is not None else 1
         winner.matches = winner.matches + 1 if winner.matches is not None else 1
@@ -128,6 +128,8 @@ class ChallengeConfirmResultsState(BaseState):
         if winner.level > loser.level:
             prev_level = winner.level
             new_level = loser.level
+            res.level_change = f'{prev_level}->{new_level}'
+        res.save()
 
         opponent.reload()
         competitor.reload()
@@ -185,6 +187,9 @@ class ChallengeConfirmResultsState(BaseState):
         user.reload()
         user.current_result = None
         user.save()
+
+        res.reload()
+        ResultsSheet.upload_result(res)
 
         return RET.GO_TO_STATE, 'MenuState', message, user
 

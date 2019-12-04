@@ -47,6 +47,8 @@ from models import db
 
 app = Flask(PROJECT_NAME)
 app.config['MONGODB_DB'] = PROJECT_NAME
+app.config['MONGODB_USERNAME'] = DB_USER
+app.config['MONGODB_PASSWORD'] = DB_PASSWORD
 app.config['SECRET_KEY'] = b'\x10X\xe6\x1c\xb0\xea\x9a\xbf\xa3\x16\x83\xe8\x0c\x84a\x87'
 db.init_app(app)
 app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
@@ -60,9 +62,12 @@ login.init_app(app)
 if __name__ == "__main__":
     from google_integration.sheets.users import UsersSheet
     from scheduler_controller import schedule_controller
+    from logger_settings import hr_logger
 
     if not args:
         raise ValueError("Args not found")
+
+    hr_logger.info('Сервіс запущено')
 
     UsersSheet.update_model()
     if args.bot:

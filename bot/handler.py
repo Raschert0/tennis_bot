@@ -1,5 +1,5 @@
 from models import User, Competitor, COMPETITOR_STATUS
-from logger_settings import logger
+from logger_settings import logger, hr_logger
 from bot.states import RET
 from localization.translations import get_translation_for
 from helpers import user_last_state
@@ -45,6 +45,7 @@ class BotHandlers(object):
                         language='ww',
                         )
             user.save()
+            hr_logger.info(f'Новий користувач бота: {user.str_repr()}')
         return user
 
     def __start_handling(self):

@@ -3,6 +3,7 @@ from flask_admin.model import typefmt
 from enum import IntEnum
 from mongoengine.errors import DoesNotExist
 from datetime import datetime
+from config import VERBOSE_HR_LOGS
 
 
 db = MongoEngine()
@@ -139,6 +140,7 @@ class Result(db.Document):
     confirmed = db.BooleanField()
     date = db.DateTimeField()
     sent = db.BooleanField()
+    level_change = db.StringField()
 
     meta = {'strict': False}
 
@@ -166,6 +168,27 @@ class User(db.Document):
 
     associated_with = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
     current_result = db.LazyReferenceField('Result', reverse_delete_rule=RDR.NULLIFY)
+
+    def str_repr(self):
+        if self.first_name:
+            ret = self.first_name
+            if self.last_name:
+                ret += f' {self.last_name}'
+            if self.username:
+                ret += f'(@{self.username})'
+            if VERBOSE_HR_LOGS:
+                ret += f' tg://user?id={self.user_id}'
+            return ret
+        elif self.username:
+            if VERBOSE_HR_LOGS:
+                return f'@{self.username} tg://user?id={self.user_id}'
+            else:
+                return f'@{self.username}'
+        else:
+            if VERBOSE_HR_LOGS:
+                return f'{self.user_id} tg://user?id={self.user_id}'
+            else:
+                return str(self.user_id)
 
     def check_association(self):
         if not self.associated_with:

@@ -2,7 +2,7 @@ from .helpers import retrieve_data, update_data
 from models import Competitor, COMPETITOR_STATUS
 from helpers import to_int
 from bot.settings_interface import get_config
-from logger_settings import logger
+from logger_settings import logger, hr_logger
 
 
 class UsersSheet:
@@ -54,6 +54,7 @@ class UsersSheet:
             for new_record in Competitor.objects(id__not__in=stored_in_sheet_records):
                 row_num += 1
                 UsersSheet.insert_competitor_in_table(new_record, at_row=row_num)
+            hr_logger.info('Оновлено список гравців з гугл-таблиці')
 
     @staticmethod
     def insert_competitor_in_table(data: Competitor, check_for_existence=False, at_row=None):

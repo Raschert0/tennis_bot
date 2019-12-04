@@ -14,6 +14,7 @@ from bot.settings_interface import get_config
 from datetime import datetime
 from pytz import timezone
 from config import STATES_HISTORY_LEN
+from google_integration.sheets.matches import ResultsSheet
 
 
 class ChallengeReceivedState(BaseState):
@@ -170,9 +171,11 @@ class ChallengeReceivedState(BaseState):
             opponent.wins = opponent.wins + 1 if opponent.wins is not None else 1
             opponent.matches = opponent.matches + 1 if opponent.matches is not None else 1
             if opponent.level > competitor.level:
+                level_change = f'{opponent.level}->{competitor.level}'
                 c = opponent.level
                 opponent.level = competitor.level
                 competitor.level = c
+                ResultsSheet.upload_canceled_result(opponent, competitor, level_change, was_dismissed=True)
 
             result = Result(
                 player_a=opponent,

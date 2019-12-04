@@ -20,9 +20,12 @@ def __scheduler_run(cease_run, interval=60):
     from bot.keyboards import get_menu_keyboard
     from bot.bot_methods import get_opponent_and_opponent_user
     from google_integration.sheets.users import UsersSheet
+    from google_integration.sheets.matches import ResultsSheet
+    from config import DB_PASSWORD, DB_USER
 
     print('*Scheduler started*')
-    db.connect(PROJECT_NAME)
+    db.disconnect()
+    db.connect(PROJECT_NAME, username=DB_USER, password=DB_PASSWORD)
     tz = timezone('Europe/Kiev')
 
     def daily_task():
@@ -107,6 +110,8 @@ def __scheduler_run(cease_run, interval=60):
                     if opponent and opponent.level > competitor.level:
                         new_level = competitor.level
                         prev_level = opponent.level
+                        level_change = f'{prev_level}->{new_level}'
+                        ResultsSheet.upload_canceled_result(opponent, competitor, level_change, was_ignored=True)
 
                     competitor.in_challenge_with = None
                     competitor.status = competitor.previous_status
