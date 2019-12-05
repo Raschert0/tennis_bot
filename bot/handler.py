@@ -6,6 +6,7 @@ from localization.translations import get_translation_for
 from helpers import user_last_state
 from telebot.types import Message, CallbackQuery, User as TGUser
 from google_integration.sheets.users import UsersSheet
+from google_integration.sheets.matches import ResultsSheet
 import telebot
 import config
 
@@ -79,12 +80,14 @@ class BotHandlers(object):
                 if user.username != cfg.admin_username:
                     return
                 UsersSheet.update_model()
+                ResultsSheet.synchronize_results()
                 self.bot.send_message(
                     message.chat.id,
                     'Дані оновлено'
                 )
             except:
                 logger.exception("Error!")
+
 
         @self.bot.message_handler(commands=['debug_forget_me'], func=for_private_chats_only)
         def debug_delete_mes(message: Message):

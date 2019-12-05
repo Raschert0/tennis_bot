@@ -13,7 +13,7 @@ from config import PROJECT_NAME
 
 
 def __scheduler_run(cease_run, interval=60):
-    from models import Competitor, COMPETITOR_STATUS, User
+    from models import Competitor, COMPETITOR_STATUS, User, RESULT, Result
     from config import BOT_TOKEN
     from telebot import TeleBot
     from localization.translations import get_translation_for
@@ -29,8 +29,14 @@ def __scheduler_run(cease_run, interval=60):
     db.connect(PROJECT_NAME, username=DB_USER, password=DB_PASSWORD)
     tz = timezone('Europe/Kiev')
 
+    def monthly_task():
+        for competitor in Competitor.objects():
+            competitor.used_vacation_time = 0
+            if competitor.status == COMPETITOR_STATUS.VACATION:
+                competitor.vacation_started_at = datetime.now(tz=tz)
+            competitor.save()
+
     def daily_task():
-        tz = timezone('Europe/Kiev')
         now = datetime.now(tz=tz)
         tbot = None
         bconfig = get_config()
@@ -62,11 +68,17 @@ def __scheduler_run(cease_run, interval=60):
         n = datetime.now(tz=tz)
         if config.last_daily_check:
             lc = mongo_time_to_local(config.last_daily_check, tz)
-            if (n - lc) > timedelta(hours=3) and n.hour in (8, 9, 10):
-                logger.info(f'Performing daily task at {n}')
-                config.last_daily_check = n
-                config.save()
-                daily_task()
+            if (n - lc) > timedelta(hours=3):
+                if n.hour in (8, 9, 10):
+                    if n.day == 1:
+                        logger.info(f'Performing monthly task at {n}')
+                        monthly_task()
+
+                    logger.info(f'Performing daily task at {n}')
+                    config.last_daily_check = n
+                    config.save()
+                    daily_task()
+
         else:
             config.last_daily_check = n
             config.save()
@@ -145,6 +157,18 @@ def __scheduler_run(cease_run, interval=60):
                                 )
                             except:
                                 logger.exception('Exception occurred while sending message to group chat')
+
+                            res = Result(
+                                player_a=opponent,
+                                player_a_s=opponent.name,
+                                player_b=competitor,
+                                player_b_s=competitor.name,
+                                result=RESULT.IGNORED,
+                                canceled=True,
+                                date=datetime.now(tz=tz),
+                                level_change=level_change
+                            )
+                            res.save()
 
                     competitor.in_challenge_with = None
                     competitor.change_status(competitor.previous_status)

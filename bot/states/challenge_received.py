@@ -186,6 +186,17 @@ class ChallengeReceivedState(BaseState):
                 competitor.level = c
                 ResultsSheet.upload_canceled_result(opponent, competitor, level_change, was_dismissed=True)
             UsersSheet.update_competitor_table_record(opponent)
+            res = Result(
+                player_a=opponent,
+                player_a_s=opponent.name,
+                player_b=competitor,
+                player_b_s=competitor.name,
+                result=RESULT.DISMISSED,
+                canceled=True,
+                date=datetime.now(tz=timezone('Europe/Kiev')),
+                level_change=level_change
+            )
+            res.save()
 
             config = get_config()
             if config.group_chat_id:

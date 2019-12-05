@@ -11,6 +11,7 @@ db = MongoEngine()
 class RDR(IntEnum):
     DO_NOTHING = 0
     NULLIFY = 1
+    CASCADE = 2
 
 
 class COMPETITOR_STATUS:
@@ -33,6 +34,8 @@ class RESULT(IntEnum):
     B_WINS = 1
     DRAW = 2
     CANCELED = 3
+    DISMISSED = 4  # player_a wins
+    IGNORED = 5  # player_a wins
 
 
 class LOG_SEVERITY:
@@ -170,13 +173,15 @@ class Competitor(db.Document):
 
 
 class Result(db.Document):
-    player_a = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
-    player_b = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.NULLIFY)
+    player_a = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.CASCADE)
+    player_b = db.LazyReferenceField('Competitor', reverse_delete_rule=RDR.CASCADE)
     player_a_s = db.StringField()
     player_b_s = db.StringField()
     scores = db.ListField(db.IntField())
+    scores_s = db.StringField()
     result = db.IntField()
     confirmed = db.BooleanField()
+    canceled = db.BooleanField()
     date = db.DateTimeField()
     sent = db.BooleanField()
     level_change = db.StringField()
@@ -191,7 +196,25 @@ class Result(db.Document):
         RESULT.DRAW: 'Draw'
     }
 
+    @staticmethod
+    def try_to_parse_score(score):
+        import re
+        from helpers import to_int
+
+        try:
+            ret = []
+            for ps in filter(None, re.split('[-,\s]', score)):
+                i = to_int(ps, None)
+                if i is None:
+                    return None
+                ret.append(i)
+            return ret
+        except:
+            return None
+
     def repr_score(self):
+        if not self.scores and self.scores_s:
+            return self.scores_s
         score = None
         score_set = None
         for s in self.scores:

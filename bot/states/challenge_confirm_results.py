@@ -217,8 +217,8 @@ class ChallengeConfirmResultsState(BaseState):
         config = get_config()
         if config.group_chat_id:
             score = res.repr_score()
-            gmsg = get_translation_for('group_chat_match_result_msg').format(opponent.name,
-                                                                             competitor.name,
+            gmsg = get_translation_for('group_chat_match_result_msg').format(winner.name,
+                                                                             loser.name,
                                                                              score)
             if res.level_change:
                 gmsg += '.\n'

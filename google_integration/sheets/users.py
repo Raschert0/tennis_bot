@@ -20,7 +20,7 @@ class UsersSheet:
         return values
 
     @staticmethod
-    def update_model():
+    def update_model(cleanse=True):
         data = UsersSheet.get_all_users()
         if not data:
             pass
@@ -53,8 +53,11 @@ class UsersSheet:
                     UsersSheet.update_competitor_db_record(row, existing_data)
                 row_num += 1
             for new_record in Competitor.objects(id__not__in=stored_in_sheet_records):
-                row_num += 1
-                UsersSheet.insert_competitor_in_table(new_record, at_row=row_num)
+                if not cleanse:
+                    row_num += 1
+                    UsersSheet.insert_competitor_in_table(new_record, at_row=row_num)
+                else:
+                    new_record.delete()
             hr_logger.info('Оновлено список гравців з гугл-таблиці')
 
     @staticmethod
@@ -74,7 +77,7 @@ class UsersSheet:
             at_row = len(already_inserted_data) + 2
         update_data(
             cfg.spreadsheet_id,
-            f'{cfg.spreadsheet_users_sheet}!A{at_row}:H',
+            f'{cfg.spreadsheet_users_sheet}!A{at_row}:G',
             values=[
                 [
                     data.legacy_number,
@@ -83,8 +86,7 @@ class UsersSheet:
                     data.level or '',
                     data.matches or 0,
                     data.wins or 0,
-                    data.losses or 0,
-                    data.performance or 0
+                    data.losses or 0
                 ],
             ]
         )
@@ -135,15 +137,14 @@ class UsersSheet:
                 if row[0] == competitor.legacy_number and row[1] == competitor.name:
                     update_data(
                         cfg.spreadsheet_id,
-                        f'{cfg.spreadsheet_users_sheet}!C{row_number}:H',
+                        f'{cfg.spreadsheet_users_sheet}!C{row_number}:G',
                         values=[
                             [
                                 Competitor.status_code_to_str_dict[competitor.status],
                                 competitor.level or '',
                                 competitor.matches or 0,
                                 competitor.wins or 0,
-                                competitor.losses or 0,
-                                competitor.performance or 0
+                                competitor.losses or 0
                             ]
                         ]
                     )
