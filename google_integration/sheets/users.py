@@ -50,6 +50,7 @@ class UsersSheet:
                     stored_in_sheet_records.add(new_data.id)
                 else:
                     stored_in_sheet_records.add(existing_data.id)
+                    UsersSheet.update_competitor_db_record(row, existing_data)
                 row_num += 1
             for new_record in Competitor.objects(id__not__in=stored_in_sheet_records):
                 row_num += 1
@@ -57,7 +58,7 @@ class UsersSheet:
             hr_logger.info('Оновлено список гравців з гугл-таблиці')
 
     @staticmethod
-    def insert_competitor_in_table(data: Competitor, check_for_existence=False, at_row=None):
+    def insert_competitor_in_table(data: Competitor, check_for_existence=False, at_row=None, all_data=None):
         cfg = get_config()
         if check_for_existence:
             pass
@@ -66,7 +67,10 @@ class UsersSheet:
             data.legacy_number = str(Competitor.objects.count() + 100)
             data.save()
         if at_row is None:
-            already_inserted_data = UsersSheet.get_all_users()
+            if not all_data:
+                already_inserted_data = UsersSheet.get_all_users()
+            else:
+                already_inserted_data = all_data
             at_row = len(already_inserted_data) + 2
         update_data(
             cfg.spreadsheet_id,
@@ -77,36 +81,84 @@ class UsersSheet:
                     data.name,
                     Competitor.status_code_to_str_dict[data.status],
                     data.level or '',
-                    data.matches,
-                    data.wins,
-                    data.losses,
-                    data.performance
+                    data.matches or 0,
+                    data.wins or 0,
+                    data.losses or 0,
+                    data.performance or 0
                 ],
             ]
         )
 
     @staticmethod
-    def update_competitor_status(competitor: Competitor, upsert=False):
-        cfg = get_config()
-        data = UsersSheet.get_all_users()
-        updated = False
-        row_number = 1
-        for row_number, row in enumerate(data, 2):
-            if row[0] == competitor.legacy_number and row[1] == competitor.name:
-                update_data(
-                    cfg.spreadsheet_id,
-                    f'{cfg.spreadsheet_users_sheet}!C{row_number}',
-                    values=[
-                        [
-                            Competitor.status_code_to_str_dict[competitor.status],
-                        ]
-                    ]
-                )
-                updated = True
-                break
-        if not updated:
-            if not upsert:
-                logger.error(f"Cannot update record for competitor {competitor.name} ({competitor.legacy_number}) - table record not found")
+    def update_competitor_status(competitor: Competitor, upsert=False, all_data=None):
+        try:
+            cfg = get_config()
+            if not all_data:
+                data = UsersSheet.get_all_users()
             else:
-                logger.warning(f"Cannot update record for competitor {competitor.name} ({competitor.legacy_number}) - table record not found. Performing upsert")
-                UsersSheet.insert_competitor_in_table(competitor, at_row=row_number+1)
+                data = all_data
+            updated = False
+            row_number = 1
+            for row_number, row in enumerate(data, 2):
+                if row[0] == competitor.legacy_number and row[1] == competitor.name:
+                    update_data(
+                        cfg.spreadsheet_id,
+                        f'{cfg.spreadsheet_users_sheet}!C{row_number}',
+                        values=[
+                            [
+                                Competitor.status_code_to_str_dict[competitor.status],
+                            ]
+                        ]
+                    )
+                    updated = True
+                    break
+            if not updated:
+                if not upsert:
+                    logger.error(f"Cannot update record for competitor {competitor.name} ({competitor.legacy_number}) - table record not found")
+                else:
+                    logger.warning(f"Cannot update record for competitor {competitor.name} ({competitor.legacy_number}) - table record not found. Performing upsert")
+                    UsersSheet.insert_competitor_in_table(competitor, at_row=row_number+1)
+        except:
+            logger.exception('Exception occurred while updating competitor status in gsheet')
+
+    @staticmethod
+    def update_competitor_table_record(competitor: Competitor, all_data=None):
+        try:
+            cfg = get_config()
+            if not all_data:
+                data = UsersSheet.get_all_users()
+            else:
+                data = all_data
+            updated = False
+            row_number = 1
+            for row_number, row in enumerate(data, 2):
+                if row[0] == competitor.legacy_number and row[1] == competitor.name:
+                    update_data(
+                        cfg.spreadsheet_id,
+                        f'{cfg.spreadsheet_users_sheet}!C{row_number}:H',
+                        values=[
+                            [
+                                Competitor.status_code_to_str_dict[competitor.status],
+                                competitor.level or '',
+                                competitor.matches or 0,
+                                competitor.wins or 0,
+                                competitor.losses or 0,
+                                competitor.performance or 0
+                            ]
+                        ]
+                    )
+                    updated = True
+                    break
+            if not updated:
+                logger.error(f"Cannot update record for competitor {competitor.name} ({competitor.legacy_number}) - table record not found")
+        except:
+            logger.exception('Exception occurred while updating competitor in gsheet')
+
+    @staticmethod
+    def update_competitor_db_record(table_row, competitor: Competitor):
+        competitor.level = to_int(table_row[3], None)
+        competitor.matches = to_int(table_row[4])
+        competitor.wins = to_int(table_row[5])
+        competitor.losses = to_int(table_row[6])
+        competitor.performance = to_int(table_row[7])
+        competitor.save()

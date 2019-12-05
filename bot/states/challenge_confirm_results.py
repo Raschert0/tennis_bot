@@ -14,6 +14,8 @@ from config import STATES_HISTORY_LEN
 from datetime import datetime
 from pytz import timezone
 from google_integration.sheets.matches import ResultsSheet
+from google_integration.sheets.logs import LogsSheet
+from google_integration.sheets.users import UsersSheet
 
 
 class ChallengeConfirmResultsState(BaseState):
@@ -109,21 +111,23 @@ class ChallengeConfirmResultsState(BaseState):
 
         winner.wins = winner.wins + 1 if winner.wins is not None else 1
         winner.matches = winner.matches + 1 if winner.matches is not None else 1
-        winner.status = COMPETITOR_STATUS.ACTIVE
+        winner.change_status(COMPETITOR_STATUS.ACTIVE)
         winner.previous_status = None
         winner.previous_challenge_status = None
         winner.challenge_started_at = None
         winner.in_challenge_with = None
         winner.save()
+        UsersSheet.update_competitor_table_record(winner)
 
         loser.wins = loser.wins + 1 if loser.wins is not None else 1
         loser.matches = loser.matches + 1 if loser.matches is not None else 1
-        loser.status = loser.previous_status
+        loser.change_status(loser.previous_status)
         loser.previous_status = None
         loser.previous_challenge_status = None
         loser.challenge_started_at = None
         loser.in_challenge_with = None
         loser.save()
+        UsersSheet.update_competitor_table_record(loser)
 
         prev_level, new_level = None, None
         if winner.level > loser.level:
@@ -191,6 +195,24 @@ class ChallengeConfirmResultsState(BaseState):
 
         res.reload()
         ResultsSheet.upload_result(res)
+        if not res.level_change:
+            LogsSheet.glog(
+                get_translation_for('gsheet_log_game_finished').format(
+                    competitor.name,
+                    opponent.name,
+                    winner.name,
+                    res.repr_score()
+                )
+            )
+        else:
+            LogsSheet.glog(
+                get_translation_for('gsheet_log_game_finished').format(
+                    competitor.name,
+                    opponent.name,
+                    winner.name,
+                    res.repr_score()
+                ) + '. ' + get_translation_for('group_chat_players_level_changed').format(res.level_change)
+            )
 
         config = get_config()
         if config.group_chat_id:
@@ -231,11 +253,11 @@ class ChallengeConfirmResultsState(BaseState):
             )
 
         if opponent.previous_challenge_status:
-            opponent.status = opponent.previous_challenge_status
+            opponent.change_status(opponent.previous_challenge_status)
             opponent.previous_challenge_status = None
         opponent.save()
 
-        competitor.status = competitor.previous_challenge_status
+        competitor.change_status(competitor.previous_challenge_status)
         competitor.previous_challenge_status = None
         competitor.save()
 

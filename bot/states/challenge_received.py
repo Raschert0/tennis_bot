@@ -16,6 +16,7 @@ from pytz import timezone
 from config import STATES_HISTORY_LEN
 from google_integration.sheets.matches import ResultsSheet
 from google_integration.sheets.logs import LogsSheet
+from google_integration.sheets.users import UsersSheet
 from logger_settings import logger
 
 
@@ -91,8 +92,8 @@ class ChallengeReceivedState(BaseState):
                 'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
             )
 
-        opponent.status = COMPETITOR_STATUS.CHALLENGE_STARTER
-        competitor.status = COMPETITOR_STATUS.CHALLENGE_RECEIVER
+        opponent.change_status(COMPETITOR_STATUS.CHALLENGE_STARTER)
+        competitor.change_status(COMPETITOR_STATUS.CHALLENGE_RECEIVER)
         competitor.latest_challenge_received_at = None
 
         n = datetime.now(tz=timezone('Europe/Kiev'))
@@ -171,7 +172,7 @@ class ChallengeReceivedState(BaseState):
             )
 
         opponent.in_challenge_with = None
-        opponent.status = opponent.previous_status
+        opponent.change_status(opponent.previous_status)
         opponent.previous_status = None
 
         if defeat:
@@ -184,6 +185,7 @@ class ChallengeReceivedState(BaseState):
                 opponent.level = competitor.level
                 competitor.level = c
                 ResultsSheet.upload_canceled_result(opponent, competitor, level_change, was_dismissed=True)
+            UsersSheet.update_competitor_table_record(opponent)
 
             config = get_config()
             if config.group_chat_id:
@@ -212,12 +214,13 @@ class ChallengeReceivedState(BaseState):
 
         competitor.in_challenge_with = None
         if defeat:
-            competitor.status = COMPETITOR_STATUS.ACTIVE
+            competitor.change_status(COMPETITOR_STATUS.ACTIVE)
             competitor.challenges_dismissed_in_a_row = 0
             competitor.losses += competitor.losses + 1 if competitor.losses is not None else 1
             competitor.matches += competitor.matches + 1 if competitor.matches is not None else 1
+            UsersSheet.update_competitor_table_record(competitor)
         else:
-            competitor.status = COMPETITOR_STATUS.PASSIVE
+            competitor.change_status(COMPETITOR_STATUS.PASSIVE)
             competitor.challenges_dismissed_in_a_row = 1
         competitor.challenges_dismissed_total = competitor.challenges_dismissed_total + 1 if competitor.challenges_dismissed_total is not None else 1
         competitor.latest_challenge_received_at = None

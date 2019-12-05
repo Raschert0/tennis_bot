@@ -144,10 +144,15 @@ LANGUAGES_DICTIONARY = {
         'gsheet_log_player_canceled_challenge_for_player': 'Гравець {} скасував свій челендж',
         'gsheet_log_player_accepted_challenge_from_player': 'Гравець {} прийняв челендж гравця {}',
         'gsheet_log_player_dismissed_challenge_from_player': 'Гравець {} відхилив челендж гравцю {}',
+        'gsheet_log_player_ignored_challenge_from_player': 'Гравець {} проігнорував челендж гравцю {}',
+        'gsheet_log_game_finished': 'Гру між гравцями {} та {} завершено. Переможець - {}, {}',
+        'gsheet_log_player_moved_to_inactive': 'Гравець {} проігнорував надто багато челенджів і був переведений до стану Inactive',
 
         'group_chat_technical_win_report_msg': 'Гравець {} отримує технічну перемогу над гравцем {}',
         'group_chat_match_result_msg': 'Гравець {} виграє у гравця {} із рахунком: {}',
         'group_chat_players_level_changed': 'Зміна рівнів гравців: {}',
+
+        'admin_notification_competitor_changed_status': 'Гравець {} змінив свій статус із {} на {}'
     }
 }
 

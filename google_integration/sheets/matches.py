@@ -119,3 +119,7 @@ class ResultsSheet:
             )
         except:
             logger.exception('Exception occurred while uploading canceled match results')
+
+    @staticmethod
+    def synchronize_results():
+        

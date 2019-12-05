@@ -49,13 +49,12 @@ class AuthenticationState(BaseState):
                 try:
                     competitor = Competitor.objects(id=competitor_id).first()
                     if competitor is not None:
-                        competitor.status = COMPETITOR_STATUS.ACTIVE
+                        competitor.change_status(COMPETITOR_STATUS.ACTIVE)
                         competitor.save()
                         user.associated_with = competitor
                         user.save()
 
                         competitor.reload()
-                        UsersSheet.update_competitor_status(competitor)
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
                     else:
                         hr_logger.error(f'Сталася помилка при аутентифікації користувача {user.str_repr()} - не вдається знайти в базі обраного ним гравця')

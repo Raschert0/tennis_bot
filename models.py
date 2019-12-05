@@ -5,7 +5,6 @@ from mongoengine.errors import DoesNotExist
 from datetime import datetime
 from config import VERBOSE_HR_LOGS
 
-
 db = MongoEngine()
 
 
@@ -111,6 +110,46 @@ class Competitor(db.Document):
                 self.in_challenge_with = None
                 self.save()
                 return False
+
+    def change_status(self, new_status, bot=None):
+        from google_integration.sheets.users import UsersSheet
+        from localization.translations import get_translation_for
+        from bot.settings_interface import get_config
+        from telebot import TeleBot
+        from config import BOT_TOKEN
+        from logger_settings import hr_logger, logger
+
+        update_sheet = False
+        if self.status_code_to_str_dict[self.status] != self.status_code_to_str_dict[new_status]:
+            update_sheet = True
+
+        cfg = get_config()
+        if update_sheet and cfg.admin_username:
+            try:
+                if self.status in (COMPETITOR_STATUS.INJUIRY, COMPETITOR_STATUS.INACTIVE) or \
+                        new_status in (COMPETITOR_STATUS.INJUIRY, COMPETITOR_STATUS.INACTIVE):
+                    admin_user = User.objects(username=cfg.admin_username).first()
+                    if admin_user:
+                        t = get_translation_for('admin_notification_competitor_changed_status').format(self.name,
+                                                                                                       self.status,
+                                                                                                       new_status)
+                        if bot is None:
+                            bot = TeleBot(BOT_TOKEN, threaded=False)
+                        bot.send_message(
+                            admin_user.user_id,
+                            t,
+                            parse_mode='html'
+                        )
+            except:
+                logger.exception('Exception occurred while sending message to admin')
+                hr_logger.error('Не вдалося надіслати адміністратору повідомлення про зміну стану користувача')
+
+        self.status = new_status
+        if update_sheet:
+            UsersSheet.update_competitor_status(self)
+
+    def get_relevant_user(self):
+        return User.objects(associated_with=self).first()
 
     meta = {'strict': False}
 
@@ -261,7 +300,8 @@ class Localization(db.Document):
 
 class HighLevelLogs(db.Document):
     date = db.DateTimeField(default=datetime.utcnow)
-    severity = db.StringField(choices=(LOG_SEVERITY.INFO, LOG_SEVERITY.WARNING, LOG_SEVERITY.ERROR, LOG_SEVERITY.EXCEPTION))
+    severity = db.StringField(
+        choices=(LOG_SEVERITY.INFO, LOG_SEVERITY.WARNING, LOG_SEVERITY.ERROR, LOG_SEVERITY.EXCEPTION))
     log = db.StringField(required=True)
 
     @staticmethod

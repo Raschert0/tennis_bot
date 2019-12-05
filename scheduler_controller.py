@@ -21,6 +21,7 @@ def __scheduler_run(cease_run, interval=60):
     from bot.bot_methods import get_opponent_and_opponent_user
     from google_integration.sheets.users import UsersSheet
     from google_integration.sheets.matches import ResultsSheet
+    from google_integration.sheets.logs import LogsSheet
     from config import DB_PASSWORD, DB_USER
 
     print('*Scheduler started*')
@@ -40,7 +41,7 @@ def __scheduler_run(cease_run, interval=60):
                 if competitor.used_vacation_time is not None:
                     delta += competitor.used_vacation_time
                 if timedelta(seconds=delta).days > bconfig.vacation_time:
-                    competitor.status = competitor.previous_status or COMPETITOR_STATUS.ACTIVE
+                    competitor.change_status(competitor.previous_status or COMPETITOR_STATUS.ACTIVE)
                     competitor.save()
                     relevant_user: User = User.objects(associated_with=competitor).first()
                     if relevant_user is not None:
@@ -51,7 +52,6 @@ def __scheduler_run(cease_run, interval=60):
                             get_translation_for('menu_on_vacation_end_msg'),
                             reply_markup=get_menu_keyboard(status=competitor.status)
                         )
-                    UsersSheet.update_competitor_status(competitor)
             else:
                 logger.error(f"Cannot find vacation_started_at for competitor {competitor.name} (on vacation). Saved current time")
                 competitor.vacation_started_at = now
@@ -123,6 +123,20 @@ def __scheduler_run(cease_run, interval=60):
                                 gmsg += '.\n'
                                 gmsg += get_translation_for('group_chat_players_level_changed').format(level_change)
 
+                                LogsSheet.glog(
+                                    get_translation_for('gsheet_log_player_ignored_challenge_from_player').format(
+                                        competitor.name,
+                                        opponent.name
+                                    ) + '. ' + get_translation_for('group_chat_players_level_changed').format(level_change)
+                                )
+                            else:
+                                LogsSheet.glog(
+                                    get_translation_for('gsheet_log_player_ignored_challenge_from_player').format(
+                                        competitor.name,
+                                        opponent.name
+                                    )
+                                )
+
                             try:
                                 tbot.send_message(
                                     config.group_chat_id,
@@ -133,7 +147,7 @@ def __scheduler_run(cease_run, interval=60):
                                 logger.exception('Exception occurred while sending message to group chat')
 
                     competitor.in_challenge_with = None
-                    competitor.status = competitor.previous_status
+                    competitor.change_status(competitor.previous_status)
                     competitor.previous_status = None
                     competitor.latest_challenge_received_at = None
                     if prev_level:
@@ -144,8 +158,12 @@ def __scheduler_run(cease_run, interval=60):
                                 competitor.challenges_ignored_total + 1) if competitor.challenges_ignored_total is not None else 1
                     competitor.matches = competitor.matches + 1 if competitor.matches is not None else 1
                     if competitor.challenges_ignored >= bconfig.maximum_challenges_ignored:
-                        competitor.status = COMPETITOR_STATUS.INACTIVE
+                        competitor.change_status(COMPETITOR_STATUS.INACTIVE)
+                        LogsSheet.glog(
+                            get_translation_for('gsheet_log_player_moved_to_inactive').format(competitor.name)
+                        )
                     competitor.save()
+                    UsersSheet.update_competitor_table_record(competitor)
 
                     t = get_translation_for('challenge_was_ignored_msg').format(
                             competitor.challenges_ignored,
@@ -172,12 +190,13 @@ def __scheduler_run(cease_run, interval=60):
 
                     if opponent:
                         opponent.in_challenge_with = None
-                        opponent.status = opponent.previous_status
+                        opponent.change_status(opponent.previous_status)
                         opponent.previous_status = None
                         opponent.latest_challenge_received_at = None
                         opponent.wins = opponent.wins + 1 if opponent.wins is not None else 1
                         opponent.matches = opponent.matches + 1 if opponent.matches is not None else 1
                         opponent.save()
+                        UsersSheet.update_competitor_table_record(opponent)
 
                         t = get_translation_for('challenge_was_ignored_opponent_msg')
                         if prev_level:

@@ -120,7 +120,7 @@ def teardown_challenge(
         opponent_msg_key=None
 ):
     competitor.in_challenge_with = None
-    competitor.status = competitor.previous_status
+    competitor.change_status(competitor.previous_status)
     competitor.previous_status = None
     competitor.latest_challenge_received_at = None
     competitor.save()
@@ -129,7 +129,7 @@ def teardown_challenge(
         opponent_user = User.objects(associated_with=opponent).first()
 
         opponent.in_challenge_with = None
-        opponent.status = opponent.previous_status
+        opponent.change_status(opponent.previous_status)
         opponent.previous_status = None
         opponent.latest_challenge_received_at = None
         opponent.save()

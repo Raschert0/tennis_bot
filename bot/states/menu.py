@@ -86,7 +86,7 @@ class MenuState(BaseState):
             )
             return RET.OK, None, None, None
         competitor.previous_status = competitor.status
-        competitor.status = COMPETITOR_STATUS.VACATION
+        competitor.change_status(COMPETITOR_STATUS.VACATION)
         competitor.vacation_started_at = datetime.now(tz=timezone('Europe/Kiev'))
         competitor.save()
         bot.send_message(
@@ -94,7 +94,6 @@ class MenuState(BaseState):
             get_translation_for('menu_on_vacation_start_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
-        UsersSheet.update_competitor_status(competitor)
         return RET.OK, None, None, None
 
     @check_wrapper
@@ -102,14 +101,13 @@ class MenuState(BaseState):
         if competitor.status not in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
             return RET.OK, None, None, None
         competitor.previous_status = competitor.status
-        competitor.status = COMPETITOR_STATUS.INJUIRY
+        competitor.change_status(COMPETITOR_STATUS.INJUIRY)
         competitor.save()
         bot.send_message(
             message.chat.id,
             get_translation_for('menu_on_sick_leave_start_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
-        UsersSheet.update_competitor_status(competitor)
         return RET.OK, None, None, None
 
     @check_wrapper
@@ -128,28 +126,26 @@ class MenuState(BaseState):
             competitor.used_vacation_time = delta
         else:
             competitor.used_vacation_time += delta
-        competitor.status = competitor.previous_status
+        competitor.change_status(competitor.previous_status)
         competitor.save()
         bot.send_message(
             message.chat.id,
             get_translation_for('menu_on_vacation_end_manual_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
-        UsersSheet.update_competitor_status(competitor)
         return RET.OK, None, None, None
 
     @check_wrapper
     def end_sick_leave(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
         if competitor.status != COMPETITOR_STATUS.INJUIRY:
             return RET.OK, None, None, None
-        competitor.status = competitor.previous_status
+        competitor.change_status(competitor.previous_status)
         competitor.save()
         bot.send_message(
             message.chat.id,
             get_translation_for('menu_on_sick_leave_end_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
-        UsersSheet.update_competitor_status(competitor)
         return RET.OK, None, None, None
 
     @check_wrapper
@@ -264,7 +260,7 @@ class MenuState(BaseState):
             user.save()
 
         opponent.previous_challenge_status = opponent.status
-        opponent.status = COMPETITOR_STATUS.CHALLENGE_NEED_CANCELLATION_CONFIRMATION
+        opponent.change_status(COMPETITOR_STATUS.CHALLENGE_NEED_CANCELLATION_CONFIRMATION)
         opponent.save()
 
         opponent_user.dismiss_confirmed = False
@@ -310,14 +306,14 @@ class MenuState(BaseState):
                 'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
             )
 
-        opponent.status = opponent.previous_status
+        opponent.change_status(opponent.previous_status)
         opponent.previous_status = None
         opponent.previous_challenge_status = None
         opponent.in_challenge_with = None
         opponent.challenge_started_at = None
         opponent.save()
 
-        competitor.status = competitor.previous_status
+        competitor.change_status(competitor.previous_status)
         competitor.previous_status = None
         competitor.previous_challenge_status = None
         competitor.in_challenge_with = None
@@ -352,7 +348,7 @@ class MenuState(BaseState):
                 'challenge_confirm_cannot_find_opponent_msg' if not opponent else 'challenge_confirm_cannot_fin_opponents_user_msg'
             )
 
-        competitor.status = competitor.previous_challenge_status
+        competitor.change_status(competitor.previous_challenge_status)
         competitor.previous_challenge_status = None
         competitor.save()
 

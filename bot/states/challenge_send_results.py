@@ -209,7 +209,7 @@ class ChallengeSendResultsState(BaseState):
             )
 
         opponent.previous_challenge_status = opponent.status
-        opponent.status = COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION
+        opponent.change_status(COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION)
         opponent.save()
 
         ores = opponent_user.check_result()

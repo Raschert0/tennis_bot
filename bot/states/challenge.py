@@ -271,13 +271,13 @@ class ChallengeSendState(BaseState):
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
 
                     opponent.previous_status = opponent.status
-                    opponent.status = COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE
+                    opponent.change_status(COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE)
                     opponent.in_challenge_with = competitor
                     opponent.latest_challenge_received_at = datetime.now(tz=timezone('Europe/Kiev'))
                     opponent.save()
 
                     competitor.previous_status = competitor.status
-                    competitor.status = COMPETITOR_STATUS.CHALLENGE_INITIATED
+                    competitor.change_status(COMPETITOR_STATUS.CHALLENGE_INITIATED)
                     competitor.in_challenge_with = opponent
                     competitor.latest_challenge_sent_to = opponent
                     competitor.save()

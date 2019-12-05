@@ -1,9 +1,11 @@
 from models import User, Competitor, COMPETITOR_STATUS
 from logger_settings import logger, hr_logger
 from bot.states import RET
+from bot.settings_interface import get_config
 from localization.translations import get_translation_for
 from helpers import user_last_state
 from telebot.types import Message, CallbackQuery, User as TGUser
+from google_integration.sheets.users import UsersSheet
 import telebot
 import config
 
@@ -69,6 +71,21 @@ class BotHandlers(object):
                                       )
                 return True
 
+        @self.bot.message_handler(commands=['update'], func=for_private_chats_only)
+        def update_model_mes(message: Message):
+            try:
+                user = self.__get_or_register_user(message.chat.id, message.from_user)
+                cfg = get_config()
+                if user.username != cfg.admin_username:
+                    return
+                UsersSheet.update_model()
+                self.bot.send_message(
+                    message.chat.id,
+                    'Дані оновлено'
+                )
+            except:
+                logger.exception("Error!")
+
         @self.bot.message_handler(commands=['debug_forget_me'], func=for_private_chats_only)
         def debug_delete_mes(message: Message):
             try:
@@ -77,7 +94,7 @@ class BotHandlers(object):
                     associated_with: Competitor = user.check_association()
                     if associated_with:
                         if associated_with.status in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
-                            associated_with.status = COMPETITOR_STATUS.UNAUTHORIZED
+                            associated_with.change_status(COMPETITOR_STATUS.UNAUTHORIZED)
                             associated_with.save()
                     user.delete()
                     user = self.__get_or_register_user(message.chat.id, message.from_user)
