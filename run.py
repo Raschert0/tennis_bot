@@ -53,7 +53,7 @@ app.config['SECRET_KEY'] = b'\x10X\xe6\x1c\xb0\xea\x9a\xbf\xa3\x16\x83\xe8\x0c\x
 db.init_app(app)
 app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
 app.register_blueprint(bot_blueprint)
-app.register_blueprint(admin_blueprint)
+#app.register_blueprint(admin_blueprint)
 admin.init_app(app)
 login.init_app(app)
 #create_translation()

@@ -269,9 +269,13 @@ def __scheduler_run(cease_run, interval=60):
             except:
                 logger.exception(f'Exception occurred while checking challenges in progress (for competitor {competitor.name} {competitor.legacy_number})')
 
+    def check_results():
+        ResultsSheet.synchronize_results(timedelta(days=1))
+
     schedule.logger.setLevel(logging.WARNING)
     schedule.every(5).minutes.do(daily_task_check)
-    schedule.every(30).seconds.do(check_challenges)
+    schedule.every(10).minutes.do(check_challenges)
+    schedule.every(7).minutes.do(check_results)
 
     while not cease_run.is_set():
         schedule.run_pending()
