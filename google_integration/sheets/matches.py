@@ -161,9 +161,12 @@ class ResultsSheet:
                     break
             if not found:
                 if sr.deletion_marker:
-                    logger.error(f'Again cannot find result info in gsheet: {sr.id}')
+                    logger.error(f'Again cannot find result info in gsheet: {sr.id}. Deleting')
+                    sr.delete()
                 else:
                     logger.error(f'Cannot find result info in gsheet: {sr.id}')
+                    sr.deletion_marker = True
+                    sr.save()
 
             else:
                 sr.deletion_marker = False
@@ -244,9 +247,11 @@ class ResultsSheet:
             if not found:
                 if sr.deletion_marker:
                     logger.error(f'Again cannot find result info in gsheet: {sr.id}')
+                    sr.delete()
                 else:
                     logger.error(f'Cannot find result info in gsheet: {sr.id}')
-
+                    sr.deletion_marker = True
+                    sr.save()
             else:
                 sr.deletion_marker = False
                 sr.save()

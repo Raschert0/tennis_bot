@@ -141,8 +141,8 @@ class Competitor(db.Document):
                             name = f'<a href="tg://user?id={associated_user.user_id}">{name}</a>'
                         t = get_translation_for('admin_notification_competitor_changed_status').format(
                             name,
-                            self.status,
-                            new_status
+                            self.status_code_to_str_dict[self.status],
+                            self.status_code_to_str_dict[new_status]
                         )
                         if bot is None:
                             bot = TeleBot(BOT_TOKEN, threaded=False)

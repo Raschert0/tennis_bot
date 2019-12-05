@@ -25,7 +25,7 @@ LANGUAGES_DICTIONARY = {
         'menu_end_vacation_btn': 'Закінчити відпустку',
         'menu_end_sick_leave_btn': 'Вийти з лікарняного',
 
-        'menu_msg': 'Меню',
+        'menu_msg': 'Оберіть необхідну команду в меню нижче',
         'menu_on_sick_leave_start_msg': 'Ви пішли на лікарняний',
         'menu_on_sick_leave_end_msg': 'Ви вийшли з лікарняного',
         'menu_on_vacation_start_msg': 'Ви пішли у відпустку',
