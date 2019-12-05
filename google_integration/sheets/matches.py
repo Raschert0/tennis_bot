@@ -26,6 +26,13 @@ class ResultsSheet:
         if values is None:
             return None
         values = values.get('values', [])
+        if values:
+            try:
+                for v in values:
+                    while len(v) < 5:
+                        v.append('')
+            except:
+                logger.exception('Error!')
         return values
 
     @staticmethod
