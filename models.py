@@ -192,6 +192,8 @@ class Result(db.Document):
     sent = db.BooleanField()
     level_change = db.StringField()
 
+    deletion_marker = db.BooleanField()
+
     meta = {'strict': False}
 
     result_to_str_dict = {

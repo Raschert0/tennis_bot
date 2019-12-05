@@ -152,8 +152,15 @@ class ResultsSheet:
                     found = True
                     all_finished_matches.remove(fm)
                     break
-            # if not found:
-            #     logger.error(f'Cannot find result info in gsheet: {sr.id}')
+            if not found:
+                if sr.deletion_marker:
+                    logger.error(f'Again cannot find result info in gsheet: {sr.id}')
+                else:
+                    logger.error(f'Cannot find result info in gsheet: {sr.id}')
+
+            else:
+                sr.deletion_marker = False
+                sr.save()
 
         now = datetime.now(tz=_k_tz)
         tbot = None
@@ -224,8 +231,15 @@ class ResultsSheet:
                     found = True
                     all_canceled_matches.remove(fm)
                     break
-            # if not found:
-            #     logger.error(f'Cannot find result info in gsheet: {sr.id}')
+            if not found:
+                if sr.deletion_marker:
+                    logger.error(f'Again cannot find result info in gsheet: {sr.id}')
+                else:
+                    logger.error(f'Cannot find result info in gsheet: {sr.id}')
+
+            else:
+                sr.deletion_marker = False
+                sr.save()
 
         for new_record in all_canceled_matches:
             try:
