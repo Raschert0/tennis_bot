@@ -93,6 +93,8 @@ class Competitor(db.Document):
 
     legacy_number = db.StringField()
 
+    associated_user_vanished = db.BooleanField()
+
     def check_opponent(self):
         if not self.in_challenge_with:
             return False

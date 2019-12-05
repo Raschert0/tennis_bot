@@ -50,6 +50,7 @@ class AuthenticationState(BaseState):
                     competitor = Competitor.objects(id=competitor_id).first()
                     if competitor is not None:
                         competitor.change_status(COMPETITOR_STATUS.ACTIVE)
+                        competitor.associated_user_vanished = False
                         competitor.save()
                         user.associated_with = competitor
                         user.save()

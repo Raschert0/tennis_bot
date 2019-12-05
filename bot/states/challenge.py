@@ -10,7 +10,7 @@ from google_integration.sheets.logs import LogsSheet
 from google_integration.sheets.usage_guard import guard
 from models import Competitor, COMPETITOR_STATUS
 from logger_settings import logger
-from bot.bot_methods import render_pagination, check_wrapper
+from bot.bot_methods import render_pagination, check_wrapper, send_msg_to_admin
 from bot.keyboards import get_challenge_confirmation_keyboard
 from bson.objectid import ObjectId
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -46,7 +46,8 @@ class ChallengeSendState(BaseState):
                 COMPETITOR_STATUS.PASSIVE
             ),
             level__in=possible_levels,
-            id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId()
+            id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId(),
+            associated_user_vanished__ne=True
         ).paginate(page=1, per_page=10)
         if not render_pagination(
             available_competitors,
@@ -150,14 +151,21 @@ class ChallengeSendState(BaseState):
                             COMPETITOR_STATUS.PASSIVE
                         ),
                         level__in=self.get_possible_levels(competitor.level),
-                        id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId()
+                        id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId(),
+                        associated_user_vanished__ne=True
                     ).paginate(
                         page=page,
                         per_page=10)
                 except NotFound:
                     logger.exception(f'User {user.user_id} tried to switch to nonexistent page {page}')
                     available_competitors = Competitor.objects(
-
+                        status__in=(
+                            COMPETITOR_STATUS.ACTIVE,
+                            COMPETITOR_STATUS.PASSIVE
+                        ),
+                        level__in=self.get_possible_levels(competitor.level),
+                        id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId(),
+                        associated_user_vanished__ne=True
                     ).paginate(page=1, per_page=10)
                 if not render_pagination(
                         available_competitors,
@@ -182,7 +190,8 @@ class ChallengeSendState(BaseState):
                     COMPETITOR_STATUS.PASSIVE
                 ),
                 level__in=self.get_possible_levels(competitor.level),
-                id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId()
+                id__ne=competitor.latest_challenge_sent_to.id if competitor.latest_challenge_sent_to is not None else ObjectId(),
+                associated_user_vanished__ne=True
             ).paginate(page=1, per_page=10)
             if not render_pagination(
                 available_competitors,
@@ -212,7 +221,8 @@ class ChallengeSendState(BaseState):
                             COMPETITOR_STATUS.PASSIVE
                         ),
                         level__in=self.get_possible_levels(competitor.level),
-                        id=opponent_id
+                        id=opponent_id,
+                        associated_user_vanished__ne=True
                     ).first()
                     if opponent is None:
                         bot.send_message(
@@ -226,6 +236,12 @@ class ChallengeSendState(BaseState):
                             callback.message.chat.id,
                             get_translation_for('challenge_cannot_send_message_to_opponent_msg')
                         )
+                        send_msg_to_admin(
+                            get_translation_for('admin_notification_tg_user_vanished').format(opponent.name)
+                        )
+                        opponent.associated_user_vanished = True
+                        opponent.save()
+
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
 
                     config = get_config()

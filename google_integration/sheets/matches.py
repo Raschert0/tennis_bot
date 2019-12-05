@@ -35,7 +35,7 @@ class ResultsSheet:
             return None
         values = retrieve_data(
             cfg.spreadsheet_id,
-            f'{cfg.spreadsheet_results_sheet}!H2:K'
+            f'{cfg.spreadsheet_results_sheet}!H2:L'
         )
         if values is None:
             return None
@@ -68,7 +68,7 @@ class ResultsSheet:
                     f'{cfg.spreadsheet_results_sheet}!A{at_row}:E',
                     values=[
                         [
-                            mongo_time_to_local(result.date, tz=_k_tz).strftime('%D/%m/%Y'),
+                            mongo_time_to_local(result.date, tz=_k_tz).strftime('%d/%m/%Y'),
                             winner.name,
                             score,
                             looser.name,
@@ -118,7 +118,7 @@ class ResultsSheet:
                 f'{cfg.spreadsheet_results_sheet}!H{at_row}:L',
                 values=[
                     [
-                        datetime.now(tz=_k_tz).strftime('%D/%m/%Y'),
+                        datetime.now(tz=_k_tz).strftime('%d/%m/%Y'),
                         looser.name,
                         t,
                         winner.name,
@@ -141,7 +141,7 @@ class ResultsSheet:
         for sr in stored_results:
             sr: Result
             score = sr.repr_score()
-            date = mongo_time_to_local(sr.date, _k_tz).strftime('%D/%m/%Y')
+            date = mongo_time_to_local(sr.date, _k_tz).strftime('%d/%m/%Y')
 
             found = False
             for fm in all_finished_matches:
@@ -167,7 +167,10 @@ class ResultsSheet:
         for new_record in all_finished_matches:
             try:
                 nr_date = new_record[0]
-                nr_date = datetime.strptime(nr_date, '%d/%m/%Y')
+                try:
+                    nr_date = datetime.strptime(nr_date, '%d/%m/%Y')
+                except ValueError:
+                    nr_date = datetime.strptime(nr_date, '%m/%d/%Y')
                 nr_date = _k_tz.localize(nr_date)
                 score = Result.try_to_parse_score(new_record[2])
                 score_s = None
@@ -218,7 +221,7 @@ class ResultsSheet:
 
         for sr in stored_results:
             sr: Result
-            date = mongo_time_to_local(sr.date, _k_tz).strftime('%D/%m/%Y')
+            date = mongo_time_to_local(sr.date, _k_tz).strftime('%d/%m/%Y')
 
             found = False
             for fm in all_canceled_matches:
@@ -244,7 +247,10 @@ class ResultsSheet:
         for new_record in all_canceled_matches:
             try:
                 nr_date = new_record[0]
-                nr_date = datetime.strptime(nr_date, '%d/%m/%Y')
+                try:
+                    nr_date = datetime.strptime(nr_date, '%d/%m/%Y')
+                except ValueError:
+                    nr_date = datetime.strptime(nr_date, '%m/%d/%Y')
                 nr_date = _k_tz.localize(nr_date)
                 is_ignored = new_record[2].find('игнор') != -1 or new_record[2].find('проігнор') != -1
                 #is_dismissed = new_record[2].find('повторн') != -1 or new_record[2].find('відмов') != -1

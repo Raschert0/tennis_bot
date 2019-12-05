@@ -159,7 +159,8 @@ LANGUAGES_DICTIONARY = {
         'group_chat_match_result_msg': 'Гравець {} виграє у гравця {} із рахунком: {}',
         'group_chat_players_level_changed': 'Зміна рівнів гравців: {}',
 
-        'admin_notification_competitor_changed_status': 'Гравець {} змінив свій статус із {} на {}'
+        'admin_notification_competitor_changed_status': 'Гравець {} змінив свій статус із {} на {}',
+        'admin_notification_tg_user_vanished': 'Не вдається більше знайти користувача, який аутентифікувався як {}',
     }
 }
 

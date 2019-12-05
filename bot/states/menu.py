@@ -149,7 +149,7 @@ class MenuState(BaseState):
             get_translation_for('menu_on_sick_leave_end_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
-        LogsSheet.glog(get_translation_for('gsheet_log_on_injuiry_ended'))
+        LogsSheet.glog(get_translation_for('gsheet_log_on_injuiry_ended').format(competitor.name))
         return RET.OK, None, None, None
 
     @check_wrapper

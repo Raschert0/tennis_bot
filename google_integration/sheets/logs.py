@@ -50,7 +50,7 @@ class LogsSheet:
                 f'{cfg.spreadsheet_logs_sheet}!A{at_row}:C',
                 values=[
                     [
-                        datetime.now(tz=_k_tz).strftime('%D/%m/%Y %H:%M:%S (%Z)'),
+                        datetime.now(tz=_k_tz).strftime('%d/%m/%Y %H:%M:%S (%Z)'),
                         _logging_severity_to_str_dict[severity],
                         text
                     ]

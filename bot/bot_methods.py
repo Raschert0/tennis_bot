@@ -7,8 +7,9 @@ from bot.keyboards import get_keyboard_remover, get_menu_keyboard
 from functools import wraps
 from flask_mongoengine.pagination import Pagination
 from logger_settings import logger
-from config import STATES_HISTORY_LEN
+from config import STATES_HISTORY_LEN, BOT_TOKEN
 from google_integration.sheets.logs import LogsSheet
+from bot.settings_interface import get_config
 
 
 def competitor_check(message: Message, user: User, bot: TeleBot, send_message=True):
@@ -226,3 +227,21 @@ def render_result(res: Result, final=False):
             text += c
         text += '</b>'
     return text
+
+
+def send_msg_to_admin(msg):
+    try:
+        cfg = get_config()
+        if not cfg.admin_username:
+            return
+        bot = TeleBot(BOT_TOKEN, threaded=False)
+        admin_user = User.objects(username=cfg.admin_username).first()
+        if not admin_user:
+            return
+        bot.send_message(
+            admin_user.user_id,
+            msg,
+            parse_mode='html'
+        )
+    except:
+        logger.exception('Error!')
