@@ -8,6 +8,7 @@ from functools import wraps
 from flask_mongoengine.pagination import Pagination
 from logger_settings import logger
 from config import STATES_HISTORY_LEN
+from google_integration.sheets.logs import LogsSheet
 
 
 def competitor_check(message: Message, user: User, bot: TeleBot, send_message=True):
@@ -134,6 +135,9 @@ def teardown_challenge(
         opponent.latest_challenge_received_at = None
         opponent.save()
 
+        if canceled_by_bot:
+            LogsSheet.glog(get_translation_for('gsheet_log_challenge_canceled').format(competitor.name, opponent.name))
+
         if opponent_user:
 
             opponent_user.dismiss_confirmed = False
@@ -157,6 +161,9 @@ def teardown_challenge(
                         reply_markup=get_menu_keyboard(status=opponent.status),
                         parse_mode='html'
                     )
+    else:
+        if canceled_by_bot:
+            LogsSheet.glog(get_translation_for('gsheet_log_challenge_canceled_no_opponent').format(competitor.name))
 
     user.dismiss_confirmed = False
     user.save()

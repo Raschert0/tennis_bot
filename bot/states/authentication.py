@@ -55,6 +55,7 @@ class AuthenticationState(BaseState):
                         user.save()
 
                         competitor.reload()
+                        hr_logger.info(f'Користувач {user.str_repr()} аутентифікувався як {competitor.name}')
                         return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
                     else:
                         hr_logger.error(f'Сталася помилка при аутентифікації користувача {user.str_repr()} - не вдається знайти в базі обраного ним гравця')

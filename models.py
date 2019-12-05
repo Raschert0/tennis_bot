@@ -133,9 +133,15 @@ class Competitor(db.Document):
                         new_status in (COMPETITOR_STATUS.INJUIRY, COMPETITOR_STATUS.INACTIVE):
                     admin_user = User.objects(username=cfg.admin_username).first()
                     if admin_user:
-                        t = get_translation_for('admin_notification_competitor_changed_status').format(self.name,
-                                                                                                       self.status,
-                                                                                                       new_status)
+                        name = self.name
+                        associated_user = self.get_relevant_user()
+                        if associated_user:
+                            name = f'<a href="tg://user?id={associated_user.user_id}">{name}</a>'
+                        t = get_translation_for('admin_notification_competitor_changed_status').format(
+                            name,
+                            self.status,
+                            new_status
+                        )
                         if bot is None:
                             bot = TeleBot(BOT_TOKEN, threaded=False)
                         bot.send_message(
@@ -145,7 +151,7 @@ class Competitor(db.Document):
                         )
             except:
                 logger.exception('Exception occurred while sending message to admin')
-                hr_logger.error('Не вдалося надіслати адміністратору повідомлення про зміну стану користувача')
+                hr_logger.error(f'Не вдалося надіслати адміністратору повідомлення про зміну стану користувача {self.name}')
 
         self.status = new_status
         if update_sheet:

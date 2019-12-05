@@ -94,6 +94,7 @@ class MenuState(BaseState):
             get_translation_for('menu_on_vacation_start_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
+        LogsSheet.glog(get_translation_for('gsheet_log_player_started_vacation').format(competitor.name))
         return RET.OK, None, None, None
 
     @check_wrapper
@@ -108,6 +109,7 @@ class MenuState(BaseState):
             get_translation_for('menu_on_sick_leave_start_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
+        LogsSheet.glog(get_translation_for('gsheet_log_on_injuiry_started').format(competitor.name))
         return RET.OK, None, None, None
 
     @check_wrapper
@@ -133,6 +135,7 @@ class MenuState(BaseState):
             get_translation_for('menu_on_vacation_end_manual_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
+        LogsSheet.glog(get_translation_for('gsheet_log_player_finished_vacation').format(competitor.name))
         return RET.OK, None, None, None
 
     @check_wrapper
@@ -146,6 +149,7 @@ class MenuState(BaseState):
             get_translation_for('menu_on_sick_leave_end_msg'),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
+        LogsSheet.glog(get_translation_for('gsheet_log_on_injuiry_ended'))
         return RET.OK, None, None, None
 
     @check_wrapper
@@ -331,6 +335,7 @@ class MenuState(BaseState):
             get_translation_for('challenge_canceled_msg').format(opponent.name),
             reply_markup=self.__base_keyboard(status=competitor.status)
         )
+        LogsSheet.glog(get_translation_for('gsheet_log_game_canceled').format(opponent.name, competitor.name))
         return RET.OK, None, None, None
 
     @check_wrapper
