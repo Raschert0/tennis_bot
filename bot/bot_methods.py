@@ -87,6 +87,13 @@ def render_pagination(pagination: Pagination, message: Message, bot: TeleBot, te
                             has_prev=pagination.has_prev
                         )
                     )
+            except ApiException as e:
+                j = loads(e.result.text)
+                if j['description'].find('is not modified') != -1:
+                    logger.warning(f'Pagination update resulted in the same message. New message is not sent: {message.chat.id}')
+                else:
+                    logger.exception(f'Exception occurred while updating keyboard pagination. Chat: {message.chat.id}')
+                    update_failed = True
             except Exception:
                 logger.exception(f'Exception occurred while updating keyboard pagination. Chat: {message.chat.id}')
                 update_failed = True

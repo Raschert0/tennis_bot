@@ -237,6 +237,7 @@ def __scheduler_run(cease_run, interval=60):
                         opponent.latest_challenge_received_at = None
                         opponent.wins = opponent.wins + 1 if opponent.wins is not None else 1
                         opponent.matches = opponent.matches + 1 if opponent.matches is not None else 1
+                        opponent.level = new_level
                         opponent.save()
                         UsersSheet.update_competitor_table_record(opponent)
 

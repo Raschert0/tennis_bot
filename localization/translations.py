@@ -24,6 +24,8 @@ LANGUAGES_DICTIONARY = {
         'menu_go_on_sick_leave_btn': '🚑 Травма',
         'menu_end_vacation_btn': '🚀 Закінчити відпустку',
         'menu_end_sick_leave_btn': '💪 Повернутись до гри',
+        'menu_moved_to_inactive_pseudo1_btn': 'Вас переведено в стан Inactive',
+        'menu_moved_to_inactive_pseudo2_btn': 'Зв\'яжіться з адміністрацією',
 
         'menu_msg': '👇',
         'menu_on_sick_leave_start_msg': 'Ви пішли на лікарняний. Бажаємо швидкого одужання 💊',

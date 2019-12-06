@@ -34,6 +34,8 @@ class MenuState(BaseState):
             'menu_accept_challenge_results_btn': self.accept_results,
             'menu_create_challenge_btn': self.create_challenge,
             'menu_cancel_challenge_btn': self.cancel_challenge,
+            'menu_moved_to_inactive_pseudo1_btn': self.inactive_btn,
+            'menu_moved_to_inactive_pseudo2_btn': self.inactive_btn,
         }
 
     @check_wrapper
@@ -400,3 +402,12 @@ class MenuState(BaseState):
         if competitor.status not in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
             return RET.OK, None, None, None
         return RET.GO_TO_STATE, 'ChallengeSendState', message, user
+
+    def inactive_btn(self, message: Message, user: User, bot: TeleBot):
+        bot.send_message(
+            message.chat.id,
+            get_translation_for('menu_moved_to_inactive_pseudo1_btn') + '\n' +
+            get_translation_for('menu_moved_to_inactive_pseudo2_btn'),
+            parse_mode='html'
+        )
+        return RET.OK, None, None, None

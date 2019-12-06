@@ -156,9 +156,11 @@ class ChallengeConfirmResultsState(BaseState):
                 opponent.reload()
                 opponent.level = new_level
                 opponent.save()
+                UsersSheet.update_competitor_table_record(opponent)
                 competitor.reload()
                 competitor.level = prev_level
                 competitor.save()
+                UsersSheet.update_competitor_table_record(competitor)
             else:
                 sw = smwae_check(
                     opponent_user.user_id,
@@ -175,9 +177,11 @@ class ChallengeConfirmResultsState(BaseState):
                 competitor.reload()
                 competitor.level = new_level
                 competitor.save()
+                UsersSheet.update_competitor_table_record(competitor)
                 opponent.reload()
                 opponent.level = prev_level
                 opponent.save()
+                UsersSheet.update_competitor_table_record(opponent)
         else:
             sw = smwae_check(
                 opponent_user.user_id,

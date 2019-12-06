@@ -18,7 +18,8 @@ def get_menu_keyboard(**kwargs):
         assert False
 
     if status == COMPETITOR_STATUS.INACTIVE:
-        return types.ReplyKeyboardRemove()
+        keyboard.row(get_translation_for('menu_moved_to_inactive_pseudo1_btn'))
+        keyboard.row(get_translation_for('menu_moved_to_inactive_pseudo2_btn'))
 
     if status in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
         keyboard.row(get_translation_for('menu_info_btn'),
