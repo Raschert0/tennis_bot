@@ -1,12 +1,11 @@
-from flask import Blueprint, redirect, url_for, request, render_template, flash, send_file, Markup
+from flask import Blueprint, redirect, url_for, render_template, flash
+from flask_admin import Admin
 from flask_admin.contrib.mongoengine import ModelView
-from flask_admin import Admin, BaseView, expose
-from flask_admin.form import rules
 from flask_login import LoginManager, current_user, login_user, logout_user
-from models import User, Administrator, Competitor, RESULT, Result, HighLevelLogs, Config
+
 from admin.forms import LoginForm
-import admin.methods as methods
-from threading import Thread
+from models import User, Administrator, Competitor, Result, HighLevelLogs
+
 #from localization.views import LocalizationView
 
 admin_blueprint = Blueprint('admin_bp', __name__)

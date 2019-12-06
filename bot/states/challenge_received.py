@@ -1,23 +1,21 @@
-from typing import Optional, Any
-
-from . import RET, BaseState
-from localization.translations import get_translation_for
-
-from telebot import TeleBot
-from telebot.types import Message, CallbackQuery
-from models import User
-
-from models import Competitor, COMPETITOR_STATUS, Result, RESULT
-from bot.keyboards import get_challenge_confirmation_keyboard, get_menu_keyboard
-from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, smwae_check
-from bot.settings_interface import get_config
 from datetime import datetime
+
 from pytz import timezone
+from telebot import TeleBot
+from telebot.types import Message
+
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, smwae_check
+from bot.keyboards import get_challenge_confirmation_keyboard, get_menu_keyboard
+from bot.settings_interface import get_config
 from config import STATES_HISTORY_LEN
-from google_integration.sheets.matches import ResultsSheet
 from google_integration.sheets.logs import LogsSheet
+from google_integration.sheets.matches import ResultsSheet
 from google_integration.sheets.users import UsersSheet
+from localization.translations import get_translation_for
 from logger_settings import logger
+from models import Competitor, COMPETITOR_STATUS, Result, RESULT
+from models import User
+from . import RET, BaseState
 
 
 class ChallengeReceivedState(BaseState):
@@ -183,6 +181,7 @@ class ChallengeReceivedState(BaseState):
         opponent.in_challenge_with = None
         opponent.change_status(opponent.previous_status)
         opponent.previous_status = None
+        opponent.save()
 
         if defeat:
             opponent.wins = opponent.wins + 1 if opponent.wins is not None else 1

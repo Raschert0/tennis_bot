@@ -260,7 +260,8 @@ class ChallengeSendState(BaseState):
                         ):
                             bot.send_message(
                                 callback.message.chat.id,
-                                get_translation_for('error_bot_blocked_by_opponent_challenge_canceled_msg'),
+                                get_translation_for('error_bot_blocked_by_opponent_challenge_canceled_msg') + '\n' +
+                                get_translation_for('error_bot_blocked_by_opponent_challenge_canceled_contact_admin_str'),
                                 parse_mode='html'
                             )
                             return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
@@ -284,7 +285,8 @@ class ChallengeSendState(BaseState):
                         ):
                             bot.send_message(
                                 callback.message.chat.id,
-                                get_translation_for('error_bot_blocked_by_opponent_challenge_canceled_msg'),
+                                get_translation_for('error_bot_blocked_by_opponent_challenge_canceled_msg') + '\n' +
+                                get_translation_for('error_bot_blocked_by_opponent_challenge_canceled_contact_admin_str'),
                                 parse_mode='html'
                             )
                             return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user

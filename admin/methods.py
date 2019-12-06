@@ -1,12 +1,12 @@
-import telebot
-from models import User
-from time import sleep
-from telebot import types
-from datetime import datetime, timedelta, date
-import json
 import csv
-import os
+from datetime import datetime
+from time import sleep
+
+import telebot
+from telebot import types
+
 import config
+from models import User
 
 bot = telebot.TeleBot(config.BOT_TOKEN, threaded=False)
 

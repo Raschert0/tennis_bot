@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
-class UsageGuard():
+class UsageGuard:
 
     def __init__(self):
         self.__latest_selfcheck = datetime.now()

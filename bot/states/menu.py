@@ -1,20 +1,19 @@
-from . import RET, BaseState
-from localization.translations import get_translation_for
-
-from telebot import TeleBot
-from telebot.types import Message, CallbackQuery
-from models import User
-
-from models import Competitor, COMPETITOR_STATUS
-from logger_settings import logger
-from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, smwae_check
-from bot.settings_interface import get_config
-from bot.keyboards import get_menu_keyboard
-from google_integration.sheets.users import UsersSheet
 from datetime import datetime, timedelta
+
 from pytz import timezone
-from helpers import mongo_time_to_local
+from telebot import TeleBot
+from telebot.types import Message
+
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, smwae_check
+from bot.keyboards import get_menu_keyboard
+from bot.settings_interface import get_config
 from google_integration.sheets.logs import LogsSheet
+from helpers import mongo_time_to_local
+from localization.translations import get_translation_for
+from logger_settings import logger
+from models import Competitor, COMPETITOR_STATUS
+from models import User
+from . import RET, BaseState
 
 
 class MenuState(BaseState):

@@ -163,10 +163,11 @@ LANGUAGES_DICTIONARY = {
         'admin_notification_tg_user_vanished': 'Не вдається більше знайти користувача, який аутентифікувався як {}',
         'admin_notification_tg_user_blocked': 'Не вдалося надіслати повідомлення користувачу {}, оскільки він заблокував бота.\n'
                                               'Гравця {} переведено у стан Inactive',
-        'admin_notification_tg_user_blocked_and_competitor_vanished': 'Не вдалося надіслати повідомлення користувачу {}, оскільки він заблокував бота.\n' \
+        'admin_notification_tg_user_blocked_and_competitor_vanished': 'Не вдалося надіслати повідомлення користувачу {}, оскільки він заблокував бота.\n'
                                                                       'При цьому користувач не пов\'язаний з жодним з гравців',
 
-        'error_bot_blocked_by_opponent_challenge_canceled_msg': 'Ваш опонент заблокував бота, тому неможливо надіслати йому повідомлення.\nЧелендж скасовано',
+        'error_bot_blocked_by_opponent_challenge_canceled_msg': 'Ваш опонент заблокував бота, тому неможливо надіслати йому повідомлення.',
+        'error_bot_blocked_by_opponent_challenge_canceled_contact_admin_str': 'Челендж буде скасовано автоматично. Для вирішення цієї проблеми зв’яжіться з адміністрацією - @abezkorovainyi'
     }
 }
 

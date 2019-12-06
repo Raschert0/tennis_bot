@@ -1,22 +1,22 @@
-from . import RET, BaseState
-from localization.translations import get_translation_for
+from datetime import datetime
 
+from pytz import timezone
 from telebot import TeleBot
-from telebot.types import Message, CallbackQuery
-from models import User
+from telebot.types import Message
 
-from models import Competitor, COMPETITOR_STATUS, Result, RESULT
-from bot.keyboards import get_result_confirmation_keyboard, get_menu_keyboard
 from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, render_result, \
     smwae_check
+from bot.keyboards import get_result_confirmation_keyboard, get_menu_keyboard
 from bot.settings_interface import get_config
-from logger_settings import logger
 from config import STATES_HISTORY_LEN
-from datetime import datetime
-from pytz import timezone
-from google_integration.sheets.matches import ResultsSheet
 from google_integration.sheets.logs import LogsSheet
+from google_integration.sheets.matches import ResultsSheet
 from google_integration.sheets.users import UsersSheet
+from localization.translations import get_translation_for
+from logger_settings import logger
+from models import Competitor, COMPETITOR_STATUS, RESULT
+from models import User
+from . import RET, BaseState
 
 
 class ChallengeConfirmResultsState(BaseState):

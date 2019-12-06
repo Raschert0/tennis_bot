@@ -1,8 +1,9 @@
-from flask_mongoengine import MongoEngine
-from flask_admin.model import typefmt
-from enum import IntEnum
-from mongoengine.errors import DoesNotExist
 from datetime import datetime
+from enum import IntEnum
+
+from flask_mongoengine import MongoEngine
+from mongoengine.errors import DoesNotExist
+
 from config import VERBOSE_HR_LOGS
 
 db = MongoEngine()

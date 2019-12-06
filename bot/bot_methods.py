@@ -273,6 +273,7 @@ def smwae_check(chat_id, msg_text, user: User, parse_mode='html', reply_markup=N
                 )
                 return False
             competitor.change_status(COMPETITOR_STATUS.INACTIVE, bot=_special_bot, do_not_notify_admin=True)
+            competitor.save()
             send_msg_to_admin(
                 get_translation_for('admin_notification_tg_user_blocked').format(user.str_repr(), competitor.name)
             )
