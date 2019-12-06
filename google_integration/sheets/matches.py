@@ -232,12 +232,20 @@ class ResultsSheet:
         for sr in stored_results:
             sr: Result
             date = mongo_time_to_local(sr.date, _k_tz).strftime('%d/%m/%Y')
+            alternative_date = mongo_time_to_local(sr.date, _k_tz).strftime('%m/%d/%Y')
 
             found = False
+            # logger.warning('----------------------------')
+            # logger.warning(f'{date}, {alternative_date}, {sr.player_a_s}, {sr.player_b_s}')
             for fm in all_canceled_matches:
                 is_ignored = fm[2].find('игнор') != -1 or fm[2].find('проігнор') != -1
                 is_dismissed = fm[2].find('повторн') != -1 or fm[2].find('відмов') != -1
-                if fm[0] == date and \
+                # logger.warning(f'Is_ignore: {is_ignored} - {sr.result==RESULT.IGNORED}, is_dismissed: {is_dismissed} - {sr.result==RESULT.DISMISSED}')
+                # logger.warning(fm)
+                # logger.warning(f'{fm[0] == date} | {fm[0] == alternative_date} | {fm[3] == sr.player_a_s} | {fm[1] == sr.player_b_s}')
+                # logger.warning(f'{(is_dismissed and sr.result == RESULT.DISMISSED) or (is_ignored and sr.result == RESULT.IGNORED)}')
+
+                if fm[0] in (date, alternative_date) and \
                         fm[3] == sr.player_a_s and \
                         fm[1] == sr.player_b_s and \
                         ((is_dismissed and sr.result == RESULT.DISMISSED) or (is_ignored and sr.result == RESULT.IGNORED)):
@@ -246,10 +254,10 @@ class ResultsSheet:
                     break
             if not found:
                 if sr.deletion_marker:
-                    logger.error(f'Again cannot find result info in gsheet: {sr.id}')
+                    logger.error(f'Again cannot find result (canceled) info in gsheet: {sr.id}. Deleting')
                     sr.delete()
                 else:
-                    logger.error(f'Cannot find result info in gsheet: {sr.id}')
+                    logger.error(f'Cannot find result (canceled) info in gsheet: {sr.id}')
                     sr.deletion_marker = True
                     sr.save()
             else:

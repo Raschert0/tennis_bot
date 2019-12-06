@@ -9,7 +9,7 @@ from models import User
 
 from models import Competitor, COMPETITOR_STATUS, Result, RESULT
 from bot.keyboards import get_challenge_confirmation_keyboard, get_menu_keyboard
-from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, smwae_check
 from bot.settings_interface import get_config
 from datetime import datetime
 from pytz import timezone
@@ -106,15 +106,24 @@ class ChallengeReceivedState(BaseState):
         competitor.save()
 
         config = get_config()
-        bot.send_message(
+        if not smwae_check(
             opponent_user.user_id,
             get_translation_for('challenge_confirm_challenge_accepted_opponent_msg').format(
                 f'<a href="tg://user?id={user.user_id}">{competitor.name}</a>',
                 config.time_to_play_challenge
             ),
+            opponent_user,
             reply_markup=get_menu_keyboard(status=opponent.status),
             parse_mode='html'
-        )
+        ):
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'error_bot_blocked_by_opponent_challenge_canceled_msg'
+            )
+        opponent_user.reload()
         opponent_user.dismiss_confirmed = False
         opponent_user.states.append('MenuState')
         if len(opponent_user.states) > STATES_HISTORY_LEN:
@@ -243,9 +252,10 @@ class ChallengeReceivedState(BaseState):
         opponent_user.save()
 
         if defeat:
-            bot.send_message(
+            smwae_check(
                 opponent_user.user_id,
                 get_translation_for('challenge_confirm_opponent_wins') + ' ' + str(opponent.level),
+                opponent_user,
                 reply_markup=get_menu_keyboard(status=opponent.status)
             )
             bot.send_message(
@@ -253,9 +263,10 @@ class ChallengeReceivedState(BaseState):
                 get_translation_for('challenge_confirm_competitor_losses') + ' ' + str(competitor.level),
             )
         else:
-            bot.send_message(
+            smwae_check(
                 opponent_user.user_id,
                 get_translation_for('challenge_confirmation_dismissed_opponent_msg'),
+                opponent_user,
                 reply_markup=get_menu_keyboard(status=opponent.status)
             )
             bot.send_message(

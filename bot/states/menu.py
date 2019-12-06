@@ -7,7 +7,7 @@ from models import User
 
 from models import Competitor, COMPETITOR_STATUS
 from logger_settings import logger
-from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, smwae_check
 from bot.settings_interface import get_config
 from bot.keyboards import get_menu_keyboard
 from google_integration.sheets.users import UsersSheet
@@ -270,11 +270,19 @@ class MenuState(BaseState):
         opponent_user.dismiss_confirmed = False
         opponent_user.save()
 
-        bot.send_message(
+        if not smwae_check(
             opponent_user.user_id,
             get_translation_for('challenge_cancel_request_opponent_msg').format(competitor.name),
+            opponent_user,
             reply_markup=self.__base_keyboard(status=opponent.status)
-        )
+        ):
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'error_bot_blocked_by_opponent_challenge_canceled_msg'
+            )
 
         bot.send_message(
             message.chat.id,
@@ -324,9 +332,10 @@ class MenuState(BaseState):
         competitor.challenge_started_at = None
         competitor.save()
 
-        bot.send_message(
+        smwae_check(
             opponent_user.user_id,
             get_translation_for('challenge_canceled_msg').format(competitor.name),
+            opponent_user,
             reply_markup=self.__base_keyboard(status=opponent.status)
         )
 
@@ -360,11 +369,19 @@ class MenuState(BaseState):
         user.dismiss_confirmed = False
         user.save()
 
-        bot.send_message(
+        if not smwae_check(
             opponent_user.user_id,
             get_translation_for('challenge_cancellation_denied_opponent_msg').format(competitor.name),
+            opponent_user,
             reply_markup=self.__base_keyboard(status=opponent.status)
-        )
+        ):
+            return teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'error_bot_blocked_by_opponent_challenge_canceled_msg'
+            )
 
         bot.send_message(
             user.user_id,

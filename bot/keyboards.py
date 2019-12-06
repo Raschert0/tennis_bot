@@ -21,10 +21,10 @@ def get_menu_keyboard(**kwargs):
         return types.ReplyKeyboardRemove()
 
     if status in (COMPETITOR_STATUS.ACTIVE, COMPETITOR_STATUS.PASSIVE):
-        keyboard.row(get_translation_for('menu_info_btn'))
-        keyboard.row(get_translation_for('menu_create_challenge_btn'))
-        keyboard.row(get_translation_for('menu_go_on_vacation_btn'))
-        keyboard.row(get_translation_for('menu_go_on_sick_leave_btn'))
+        keyboard.row(get_translation_for('menu_info_btn'),
+                     get_translation_for('menu_create_challenge_btn'))
+        keyboard.row(get_translation_for('menu_go_on_vacation_btn'),
+                     get_translation_for('menu_go_on_sick_leave_btn'))
     elif status == COMPETITOR_STATUS.CHALLENGE_INITIATED:
         keyboard.row(get_translation_for('menu_info_btn'))
         keyboard.row(get_translation_for('menu_cancel_challenge_request_btn'))

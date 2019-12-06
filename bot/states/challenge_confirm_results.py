@@ -7,7 +7,8 @@ from models import User
 
 from models import Competitor, COMPETITOR_STATUS, Result, RESULT
 from bot.keyboards import get_result_confirmation_keyboard, get_menu_keyboard
-from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, render_result
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, render_result, \
+    smwae_check
 from bot.settings_interface import get_config
 from logger_settings import logger
 from config import STATES_HISTORY_LEN
@@ -140,10 +141,11 @@ class ChallengeConfirmResultsState(BaseState):
         competitor.reload()
         if prev_level:
             if opponent == winner:
-                bot.send_message(
+                sw = smwae_check(
                     opponent_user.user_id,
                     get_translation_for('result_confirmation_confirmed_opponent_msg') + '\n' +
                     get_translation_for('your_level_changed_str').format(prev_level, new_level),
+                    opponent_user,
                     reply_markup=get_menu_keyboard(status=opponent.status)
                 )
                 bot.send_message(
@@ -158,10 +160,11 @@ class ChallengeConfirmResultsState(BaseState):
                 competitor.level = prev_level
                 competitor.save()
             else:
-                bot.send_message(
+                sw = smwae_check(
                     opponent_user.user_id,
                     get_translation_for('result_confirmation_confirmed_opponent_msg') + '\n' +
                     get_translation_for('your_level_changed_str').format(new_level, new_level),
+                    opponent_user,
                     reply_markup=get_menu_keyboard(status=opponent.status)
                 )
                 bot.send_message(
@@ -176,9 +179,10 @@ class ChallengeConfirmResultsState(BaseState):
                 opponent.level = prev_level
                 opponent.save()
         else:
-            bot.send_message(
+            sw = smwae_check(
                 opponent_user.user_id,
                 get_translation_for('result_confirmation_confirmed_opponent_msg'),
+                opponent_user,
                 reply_markup=get_menu_keyboard(status=opponent.status)
             )
 
@@ -261,12 +265,26 @@ class ChallengeConfirmResultsState(BaseState):
         competitor.previous_challenge_status = None
         competitor.save()
 
-
-        bot.send_message(
+        if not smwae_check(
             opponent_user.user_id,
             get_translation_for('result_confirmation_dismissed_opponent_msg'),
+            opponent_user,
             reply_markup=get_menu_keyboard(status=opponent.status)
-        )
+        ):
+            teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'error_bot_blocked_by_opponent_challenge_canceled_msg'
+            )
+            res.delete()
+            opponent_user.reload()
+            opponent_user.current_result = None
+            opponent_user.save()
+            user.current_result = None
+            user.save()
+            return RET.GO_TO_STATE, 'MenuState', message, user
 
         bot.send_message(
             message.chat.id,
@@ -274,6 +292,7 @@ class ChallengeConfirmResultsState(BaseState):
         )
 
         res.delete()
+        opponent_user.reload()
         opponent_user.current_result = None
         opponent_user.save()
         user.current_result = None

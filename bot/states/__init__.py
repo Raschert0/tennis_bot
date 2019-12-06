@@ -31,13 +31,18 @@ class BaseState(object):
         # if self.authentication_required(user):
         #     return RET_GO_TO_STATE, 'AuthenticationState', message, user
         if message.text:
+            backed_ret = None
             for k, v in self._buttons.items():
                 assert user.language is not None
                 if message.text == get_translation_for(k):
                     ret = v(message, user, bot)
                     if isinstance(ret, tuple):
+                        if ret[0] == RET.OK:
+                            backed_ret = ret  # Let's check if there is another button for this text
+                            continue
                         return ret
-                    break
+            if backed_ret:
+                return backed_ret
         return self.process_message(message=message, user=user, bot=bot)
 
     # def authentication_required(self, user):

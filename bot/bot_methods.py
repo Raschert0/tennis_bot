@@ -1,7 +1,8 @@
-from models import User, Competitor, Result, RESULT
+from models import User, Competitor, Result, RESULT, COMPETITOR_STATUS
 from bot.states import RET
 from telebot import TeleBot
 from telebot.types import Message
+from telebot.apihelper import ApiException
 from localization.translations import get_translation_for
 from bot.keyboards import get_keyboard_remover, get_menu_keyboard
 from functools import wraps
@@ -10,6 +11,7 @@ from logger_settings import logger
 from config import STATES_HISTORY_LEN, BOT_TOKEN
 from google_integration.sheets.logs import LogsSheet
 from bot.settings_interface import get_config
+from json import loads
 
 
 def competitor_check(message: Message, user: User, bot: TeleBot, send_message=True):
@@ -113,13 +115,14 @@ def get_opponent_and_opponent_user(competitor: Competitor) -> (Competitor, User)
 
 def teardown_challenge(
         competitor: Competitor,
-        message: Message,
+        message,
         user: User,
         bot: TeleBot,
         cause_key,
         canceled_by_bot=True,
         opponent: Competitor = None,
-        opponent_msg_key=None
+        opponent_msg_key=None,
+        no_glog=False
 ):
     competitor.in_challenge_with = None
     competitor.change_status(competitor.previous_status)
@@ -136,7 +139,7 @@ def teardown_challenge(
         opponent.latest_challenge_received_at = None
         opponent.save()
 
-        if canceled_by_bot:
+        if canceled_by_bot and not no_glog:
             LogsSheet.glog(get_translation_for('gsheet_log_challenge_canceled').format(competitor.name, opponent.name))
 
         if opponent_user:
@@ -163,7 +166,7 @@ def teardown_challenge(
                         parse_mode='html'
                     )
     else:
-        if canceled_by_bot:
+        if canceled_by_bot and not no_glog:
             LogsSheet.glog(get_translation_for('gsheet_log_challenge_canceled_no_opponent').format(competitor.name))
 
     user.dismiss_confirmed = False
@@ -245,3 +248,34 @@ def send_msg_to_admin(msg):
         )
     except:
         logger.exception('Error!')
+
+
+_special_bot = TeleBot(BOT_TOKEN, threaded=False)
+
+
+def smwae_check(chat_id, msg_text, user: User, parse_mode='html', reply_markup=None):
+    try:
+        _special_bot.send_message(
+            chat_id or user.user_id,
+            msg_text,
+            reply_markup=reply_markup,
+            parse_mode=parse_mode
+        )
+        return True
+    except ApiException as e:
+        res = loads(e.result.text)
+        if res['description'].find('was blocked') != -1:
+            competitor: Competitor = user.check_association()
+            if not competitor:
+                # Some strange shit just happened here
+                send_msg_to_admin(
+                    get_translation_for('admin_notification_tg_user_blocked_and_competitor_vanished').format(user.str_repr())
+                )
+                return False
+            competitor.change_status(COMPETITOR_STATUS.INACTIVE, bot=_special_bot, do_not_notify_admin=True)
+            send_msg_to_admin(
+                get_translation_for('admin_notification_tg_user_blocked').format(user.str_repr(), competitor.name)
+            )
+            return False
+        else:
+            raise e

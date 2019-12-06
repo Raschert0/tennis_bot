@@ -6,7 +6,8 @@ from telebot.types import Message, CallbackQuery
 from models import User
 
 from models import Competitor, COMPETITOR_STATUS, Result, RESULT
-from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, render_result
+from bot.bot_methods import check_wrapper, get_opponent_and_opponent_user, teardown_challenge, render_result, \
+    smwae_check
 from bot.keyboards import get_results_keyboard, get_result_confirmation_keyboard
 from helpers import to_int
 from logger_settings import logger
@@ -111,6 +112,7 @@ class ChallengeSendResultsState(BaseState):
             return RET.OK, None, None, None
         # TODO: checks
         if len(res.scores) > 10:
+
             bot.send_message(
                 user.user_id,
                 get_translation_for('results_maximum_scores_entered_msg'),
@@ -224,15 +226,23 @@ class ChallengeSendResultsState(BaseState):
         res.sent = True
         res.save()
 
-        bot.send_message(
+        if not smwae_check(
             opponent_user.user_id,
             get_translation_for('result_confirmation_msg') + '\n' + render_result(
                 res,
                 final=False
             ),
+            opponent_user,
             reply_markup=get_result_confirmation_keyboard(),
-            parse_mode='html'
-        )
+        ):
+            teardown_challenge(
+                competitor,
+                message,
+                user,
+                bot,
+                'error_bot_blocked_by_opponent_challenge_canceled_msg'
+            )
+            return RET.GO_TO_STATE, 'MenuState', message, user
 
         bot.send_message(
             message.chat.id,

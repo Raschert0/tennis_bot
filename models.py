@@ -116,7 +116,7 @@ class Competitor(db.Document):
                 self.save()
                 return False
 
-    def change_status(self, new_status, bot=None):
+    def change_status(self, new_status, bot=None, do_not_notify_admin=False):
         from google_integration.sheets.users import UsersSheet
         from localization.translations import get_translation_for
         from bot.settings_interface import get_config
@@ -129,7 +129,7 @@ class Competitor(db.Document):
             update_sheet = True
 
         cfg = get_config()
-        if update_sheet and cfg.admin_username:
+        if update_sheet and cfg.admin_username and not do_not_notify_admin:
             try:
                 if self.status in (COMPETITOR_STATUS.INJUIRY, COMPETITOR_STATUS.INACTIVE) or \
                         new_status in (COMPETITOR_STATUS.INJUIRY, COMPETITOR_STATUS.INACTIVE):
@@ -173,6 +173,7 @@ class Competitor(db.Document):
         COMPETITOR_STATUS.CHALLENGE_STARTER: 'Challenged',
         COMPETITOR_STATUS.CHALLENGE_RECEIVER: 'Challenged',
         COMPETITOR_STATUS.CHALLENGE_NEED_RESULTS_CONFIRMATION: 'Challenged',
+        COMPETITOR_STATUS.CHALLENGE_NEED_CANCELLATION_CONFIRMATION: 'Challenged',
         COMPETITOR_STATUS.PASSIVE: 'Passive',
         COMPETITOR_STATUS.VACATION: 'Vacation',
         COMPETITOR_STATUS.INJUIRY: 'Injuiry',

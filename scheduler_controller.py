@@ -5,6 +5,8 @@ import logging
 import atexit
 from datetime import datetime, timedelta
 from pytz import timezone
+
+from bot.bot_methods import smwae_check, teardown_challenge
 from logger_settings import logger
 from bot.settings_interface import get_config_document, get_config
 from helpers import mongo_time_to_local
@@ -53,9 +55,10 @@ def __scheduler_run(cease_run, interval=60):
                     if relevant_user is not None:
                         if not tbot:
                             tbot = TeleBot(BOT_TOKEN, threaded=False)
-                        tbot.send_message(
+                        smwae_check(
                             relevant_user.user_id,
                             get_translation_for('menu_on_vacation_end_msg'),
+                            relevant_user,
                             reply_markup=get_menu_keyboard(status=competitor.status)
                         )
             else:
@@ -94,17 +97,29 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.latest_challenge_received_at = datetime.now(tz=tz)
                     competitor.save()
                     continue
-                cs = mongo_time_to_local(competitor.challenge_started_at, tz)
+                cs = mongo_time_to_local(competitor.latest_challenge_received_at, tz)
                 if (cs - n) > timedelta(days=max(0, bconfig.time_to_accept_challenge-bconfig.accept_challenge_reminder)) and not competitor.challenge_remainder_sent:
                     if tbot is None:
                         tbot = TeleBot(PROJECT_NAME, threaded=False)
                     cuser = User.objects(associated_with=competitor).first()
                     if cuser is None:
                         continue
-                    tbot.send_message(
+                    if not smwae_check(
                         cuser.user_id,
-                        get_translation_for('remainder_challenge_accept_msg').format(bconfig.accept_challenge_reminder)
-                    )
+                        get_translation_for('remainder_challenge_accept_msg').format(bconfig.accept_challenge_reminder),
+                        cuser
+                    ):
+                        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+                        if opponent and opponent_user:
+                            teardown_challenge(
+                                opponent,
+                                None,
+                                opponent_user,
+                                tbot,
+                                'error_bot_blocked_by_opponent_challenge_canceled_msg'
+                            )
+                            continue
+                    competitor.reload()
                     competitor.challenge_remainder_sent = True
                     competitor.save()
                 elif (cs-n) > timedelta(days=bconfig.time_to_accept_challenge):
@@ -203,9 +218,10 @@ def __scheduler_run(cease_run, interval=60):
                             t += '.\n'
                             t += get_translation_for('your_level_changed_str').format(new_level, prev_level)
 
-                        tbot.send_message(
+                        smwae_check(
                             cuser.user_id,
                             t,
+                            cuser,
                             reply_markup=get_menu_keyboard(
                                 status=competitor.status
                             ),
@@ -213,8 +229,10 @@ def __scheduler_run(cease_run, interval=60):
                         )
 
                     if opponent:
+                        opponent.reload()
                         opponent.in_challenge_with = None
-                        opponent.change_status(opponent.previous_status)
+                        if opponent.status != COMPETITOR_STATUS.INACTIVE:
+                            opponent.change_status(opponent.previous_status)
                         opponent.previous_status = None
                         opponent.latest_challenge_received_at = None
                         opponent.wins = opponent.wins + 1 if opponent.wins is not None else 1
@@ -227,9 +245,10 @@ def __scheduler_run(cease_run, interval=60):
                             t += '\n'
                             t += get_translation_for('your_level_changed_str').format(prev_level, new_level)
                         if opponent_user:
-                            tbot.send_message(
+                            smwae_check(
                                 opponent_user.user_id,
                                 t,
+                                opponent_user,
                                 reply_markup=get_menu_keyboard(status=opponent.status),
                                 parse_mode='html'
                             )
@@ -257,10 +276,22 @@ def __scheduler_run(cease_run, interval=60):
                     cuser = User.objects(associated_with=competitor).first()
                     if cuser is None:
                         continue
-                    tbot.send_message(
+                    if not smwae_check(
                         cuser.user_id,
-                        get_translation_for('remainder_challenge_play_msg').format(bconfig.challenge_play_reminder)
-                    )
+                        get_translation_for('remainder_challenge_play_msg').format(bconfig.challenge_play_reminder),
+                        cuser
+                    ):
+                        opponent, opponent_user = get_opponent_and_opponent_user(competitor)
+                        if opponent and opponent_user:
+                            teardown_challenge(
+                                opponent,
+                                None,
+                                opponent_user,
+                                tbot,
+                                'error_bot_blocked_by_opponent_challenge_canceled_msg'
+                            )
+                            continue
+                    competitor.reload()
                     competitor.challenge_remainder_sent = True
                     competitor.save()
                 elif (cs - n) > timedelta(days=bconfig.time_to_play_challenge):
@@ -275,7 +306,7 @@ def __scheduler_run(cease_run, interval=60):
     schedule.logger.setLevel(logging.WARNING)
     schedule.every(5).minutes.do(daily_task_check)
     schedule.every(10).minutes.do(check_challenges)
-    schedule.every(7).minutes.do(check_results)
+    schedule.every(3).minutes.do(check_results)
 
     while not cease_run.is_set():
         schedule.run_pending()

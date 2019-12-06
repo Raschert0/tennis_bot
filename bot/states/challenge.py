@@ -10,7 +10,7 @@ from google_integration.sheets.logs import LogsSheet
 from google_integration.sheets.usage_guard import guard
 from models import Competitor, COMPETITOR_STATUS
 from logger_settings import logger
-from bot.bot_methods import render_pagination, check_wrapper, send_msg_to_admin
+from bot.bot_methods import render_pagination, check_wrapper, send_msg_to_admin, smwae_check
 from bot.keyboards import get_challenge_confirmation_keyboard
 from bson.objectid import ObjectId
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -246,7 +246,7 @@ class ChallengeSendState(BaseState):
 
                     config = get_config()
                     if opponent.status == COMPETITOR_STATUS.ACTIVE:
-                        bot.send_message(
+                        if not smwae_check(
                             opponent_user.user_id,
                             get_translation_for('challenge_you_are_challenged_msg').format(
                                 user.user_id,
@@ -254,15 +254,23 @@ class ChallengeSendState(BaseState):
                                 competitor.level,
                                 config.time_to_accept_challenge
                             ),
+                            opponent_user,
                             reply_markup=get_challenge_confirmation_keyboard(),
                             parse_mode='html'
-                        )
+                        ):
+                            bot.send_message(
+                                callback.message.chat.id,
+                                get_translation_for('error_bot_blocked_by_opponent_challenge_canceled_msg'),
+                                parse_mode='html'
+                            )
+                            return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
+                        opponent_user.reload()
                         opponent_user.states.append('ChallengeReceivedState')
                         if len(opponent_user.states) > STATES_HISTORY_LEN:
                             del opponent_user.states[0]
                         opponent_user.save()
                     elif opponent.status == COMPETITOR_STATUS.PASSIVE:
-                        bot.send_message(
+                        if not smwae_check(
                             opponent_user.user_id,
                             get_translation_for('challenge_you_are_challenged_passive_msg').format(
                                 user.user_id,
@@ -270,9 +278,17 @@ class ChallengeSendState(BaseState):
                                 competitor.level,
                                 config.time_to_accept_challenge
                             ),
+                            opponent_user,
                             reply_markup=get_challenge_confirmation_keyboard(),
                             parse_mode='html'
-                        )
+                        ):
+                            bot.send_message(
+                                callback.message.chat.id,
+                                get_translation_for('error_bot_blocked_by_opponent_challenge_canceled_msg'),
+                                parse_mode='html'
+                            )
+                            return RET.ANSWER_AND_GO_TO_STATE, 'MenuState', callback, user
+                        opponent_user.reload()
                         opponent_user.states.append('ChallengeReceivedState')
                         if len(opponent_user.states) > STATES_HISTORY_LEN:
                             del opponent_user.states[0]
