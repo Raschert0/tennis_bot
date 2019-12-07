@@ -168,6 +168,30 @@ class BotHandlers(object):
             except:
                 logger.exception("Error!")
 
+        @self.bot.message_handler(commands=['get_id'])
+        def get_id(message):
+            try:
+                t = 'This chat ID: ' + str(message.chat.id)
+                # try:
+                #     t += '\nForward from: ' + str(message.forward_from.id)
+                # except:
+                #     pass
+                # try:
+                #     t += '\nForward from chat: ' + str(message.forward_from_chat.id)
+                # except:
+                #     pass
+                # try:
+                #     t += '\nForward from (message id): ' + str(message.forward_from_message_id)
+                # except:
+                #     pass
+
+                self.bot.send_message(
+                    message.chat.id,
+                    t
+                )
+            except:
+                logger.exception('Unexpected error while processing /get_id command')
+
     def __register_state(self, state_class):
         self.__states[state_class.__name__] = state_class()
 

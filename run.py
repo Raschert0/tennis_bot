@@ -46,9 +46,15 @@ from models import db
 
 
 app = Flask(PROJECT_NAME)
-app.config['MONGODB_DB'] = PROJECT_NAME
-app.config['MONGODB_USERNAME'] = DB_USER
-app.config['MONGODB_PASSWORD'] = DB_PASSWORD
+app.config['MONGODB_SETTINGS'] = {
+    'db': PROJECT_NAME,
+    'username': DB_USER,
+    'password': DB_PASSWORD,
+    'authentication_source': 'admin'
+}
+# app.config['MONGODB_DB'] = PROJECT_NAME
+# app.config['MONGODB_USERNAME'] = DB_USER
+# app.config['MONGODB_PASSWORD'] = DB_PASSWORD
 app.config['SECRET_KEY'] = b'\x10X\xe6\x1c\xb0\xea\x9a\xbf\xa3\x16\x83\xe8\x0c\x84a\x87'
 db.init_app(app)
 app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
