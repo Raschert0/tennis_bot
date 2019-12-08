@@ -50,7 +50,7 @@ app.config['MONGODB_SETTINGS'] = {
     'db': PROJECT_NAME,
     'username': DB_USER,
     'password': DB_PASSWORD,
-    'authentication_source': 'admin'
+    'authentication_source': DB_AUTH or 'admin'
 }
 # app.config['MONGODB_DB'] = PROJECT_NAME
 # app.config['MONGODB_USERNAME'] = DB_USER

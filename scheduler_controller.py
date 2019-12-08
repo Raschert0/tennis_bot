@@ -195,6 +195,7 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.challenges_ignored = (competitor.challenges_ignored + 1) if competitor.challenges_ignored is not None else 1
                     competitor.challenges_ignored_total = (
                                 competitor.challenges_ignored_total + 1) if competitor.challenges_ignored_total is not None else 1
+                    competitor.losses = competitor.losses + 1 if competitor.losses is not None else 1
                     competitor.matches = competitor.matches + 1 if competitor.matches is not None else 1
                     if competitor.challenges_ignored >= bconfig.maximum_challenges_ignored:
                         competitor.change_status(COMPETITOR_STATUS.INACTIVE)

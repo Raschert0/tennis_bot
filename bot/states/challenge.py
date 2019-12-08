@@ -28,7 +28,8 @@ class ChallengeSendState(BaseState):
     @staticmethod
     def get_possible_levels(l):
         ret = []
-        for _ in range(3):
+        cfg = get_config()
+        for _ in range(cfg.maximum_level_difference):
             l -= 1
             if l >= 1:
                 ret.append(l)

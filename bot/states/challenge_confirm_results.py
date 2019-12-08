@@ -120,7 +120,7 @@ class ChallengeConfirmResultsState(BaseState):
         winner.save()
         UsersSheet.update_competitor_table_record(winner)
 
-        loser.wins = loser.wins + 1 if loser.wins is not None else 1
+        loser.losses = loser.losses + 1 if loser.losses is not None else 1
         loser.matches = loser.matches + 1 if loser.matches is not None else 1
         loser.change_status(loser.previous_status)
         loser.previous_status = None
