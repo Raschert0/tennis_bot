@@ -309,12 +309,14 @@ class ChallengeSendState(BaseState):
                     opponent.change_status(COMPETITOR_STATUS.CHALLENGE_NEED_RESPONSE)
                     opponent.in_challenge_with = competitor
                     opponent.latest_challenge_received_at = datetime.now(tz=timezone('Europe/Kiev'))
+                    opponent.challenge_remainder_sent = False
                     opponent.save()
 
                     competitor.previous_status = competitor.status
                     competitor.change_status(COMPETITOR_STATUS.CHALLENGE_INITIATED)
                     competitor.in_challenge_with = opponent
                     competitor.latest_challenge_sent_to = opponent
+                    competitor.challenge_remainder_sent = False
                     competitor.save()
 
                     user.dismiss_confirmed = False

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from bot.bot_methods import smwae_check, teardown_challenge
-from logger_settings import logger
+from logger_settings import logger, hr_logger
 from bot.settings_interface import get_config_document, get_config
 from helpers import mongo_time_to_local
 from models import db
@@ -24,11 +24,11 @@ def __scheduler_run(cease_run, interval=60):
     from google_integration.sheets.users import UsersSheet
     from google_integration.sheets.matches import ResultsSheet
     from google_integration.sheets.logs import LogsSheet
-    from config import DB_PASSWORD, DB_USER
+    from config import DB_PASSWORD, DB_USER, DB_AUTH
 
-    print('*Scheduler started*')
+    hr_logger.info('*Scheduler started*')
     db.disconnect()
-    db.connect(PROJECT_NAME, username=DB_USER, password=DB_PASSWORD)
+    db.connect(PROJECT_NAME, username=DB_USER, password=DB_PASSWORD, authentication_source=DB_AUTH or 'admin')
     tz = timezone('Europe/Kiev')
 
     def monthly_task():
@@ -98,7 +98,7 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.save()
                     continue
                 cs = mongo_time_to_local(competitor.latest_challenge_received_at, tz)
-                if (cs - n) > timedelta(days=max(0, bconfig.time_to_accept_challenge-bconfig.accept_challenge_reminder)) and not competitor.challenge_remainder_sent:
+                if (n - cs) > timedelta(days=max(0, bconfig.time_to_accept_challenge-bconfig.accept_challenge_reminder)) and not competitor.challenge_remainder_sent:
                     if tbot is None:
                         tbot = TeleBot(PROJECT_NAME, threaded=False)
                     cuser = User.objects(associated_with=competitor).first()
@@ -122,7 +122,7 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.reload()
                     competitor.challenge_remainder_sent = True
                     competitor.save()
-                elif (cs-n) > timedelta(days=bconfig.time_to_accept_challenge):
+                elif (n - cs) > timedelta(days=bconfig.time_to_accept_challenge):
                     if tbot is None:
                         tbot = TeleBot(PROJECT_NAME, threaded=False)
                     cuser = User.objects(associated_with=competitor).first()
@@ -272,7 +272,7 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.save()
                     continue
                 cs = mongo_time_to_local(competitor.challenge_started_at, tz)
-                if (cs - n) > timedelta(days=max(0, bconfig.time_to_play_challenge-bconfig.challenge_play_reminder)):
+                if (n - cs) > timedelta(days=max(0, bconfig.time_to_play_challenge-bconfig.challenge_play_reminder)) and not competitor.challenge_remainder_sent:
                     if tbot is None:
                         tbot = TeleBot(PROJECT_NAME, threaded=False)
                     cuser = User.objects(associated_with=competitor).first()
@@ -296,7 +296,7 @@ def __scheduler_run(cease_run, interval=60):
                     competitor.reload()
                     competitor.challenge_remainder_sent = True
                     competitor.save()
-                elif (cs - n) > timedelta(days=bconfig.time_to_play_challenge):
+                elif (n - cs) > timedelta(days=bconfig.time_to_play_challenge):
                     # TODO
                     pass
             except:

@@ -68,6 +68,12 @@ class ChallengeReceivedState(BaseState):
                 get_translation_for('challenge_received_not_found')
             )
             return RET.GO_TO_STATE, 'MenuState', message, user
+        else:
+            bot.send_message(message.chat.id,
+                             get_translation_for('use_keyboard_msg'),
+                             reply_markup=self.__base_keyboard()
+                             )
+            return RET.OK, None, None, None
 
     def __base_keyboard(self, **kwargs):
         return get_challenge_confirmation_keyboard(**kwargs)
@@ -97,6 +103,9 @@ class ChallengeReceivedState(BaseState):
         n = datetime.now(tz=timezone('Europe/Kiev'))
         opponent.challenge_started_at = n
         competitor.challenge_started_at = n
+
+        opponent.challenge_remainder_sent = False
+        competitor.challenge_remainder_sent = False
 
         competitor.challenges_dismissed_in_a_row = 0
 
