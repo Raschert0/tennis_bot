@@ -5,6 +5,12 @@ import os
 forked = 0
 
 
+def pre_request(worker, req):
+    from logger_settings import logger
+
+    logger.debug('Gunicorn request arrived')
+
+
 def pre_fork(server, worker):
     global forked
     forked += 1

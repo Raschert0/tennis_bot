@@ -14,6 +14,8 @@ from logger_settings import logger
 from models import Competitor, COMPETITOR_STATUS
 from models import User
 from . import RET, BaseState
+from google_integration.sheets.users import UsersSheet
+from google_integration.sheets.usage_guard import guard
 
 
 class MenuState(BaseState):
@@ -57,6 +59,8 @@ class MenuState(BaseState):
 
     @check_wrapper
     def info_btn(self, message: Message, user: User, bot: TeleBot, competitor: Competitor):
+        if guard.get_allowed():
+            UsersSheet.update_competitor_performance_from_table(competitor)
         config = get_config()
         info = f'<b>{competitor.name}</b>\n' \
                f'{get_translation_for("info_status_str")}: {Competitor.status_code_to_str_dict[competitor.status]}\n' \

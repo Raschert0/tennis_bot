@@ -24,7 +24,7 @@ class ResultsSheet:
             f'{cfg.spreadsheet_results_sheet}!A2:E'
         )
         if values is None:
-            return None
+            return []
         values = values.get('values', [])
         if values:
             try:
@@ -33,6 +33,7 @@ class ResultsSheet:
                         v.append('')
             except:
                 logger.exception('Error!')
+                return []
         return values
 
     @staticmethod
@@ -45,7 +46,7 @@ class ResultsSheet:
             f'{cfg.spreadsheet_results_sheet}!H2:L'
         )
         if values is None:
-            return None
+            return []
         values = values.get('values', [])
         return values
 
@@ -150,12 +151,22 @@ class ResultsSheet:
             score = sr.repr_score()
             date = mongo_time_to_local(sr.date, _k_tz).strftime('%d/%m/%Y')
 
+            if sr.result == RESULT.A_WINS:
+                winner = sr.player_a_s
+                loser = sr.player_b_s
+            elif sr.result == RESULT.B_WINS:
+                winner = sr.player_b_s
+                loser = sr.player_a_s
+            else:
+                logger.error(f'INCONSISTENT RESULT OF A MATCH RESULT: {sr.id} {sr.result} {sr.player_a_s} {sr.player_b_s}')
+                continue
+
             found = False
             for fm in all_finished_matches:
                 if fm[0] == date and \
-                        fm[1] == sr.player_a_s and \
+                        fm[1] == winner and \
                         fm[2] == score and \
-                        fm[3] == sr.player_b_s:
+                        fm[3] == loser:
                     found = True
                     all_finished_matches.remove(fm)
                     break
@@ -164,7 +175,7 @@ class ResultsSheet:
                     logger.error(f'Again cannot find result info in gsheet: {sr.id}. Deleting')
                     sr.delete()
                 else:
-                    logger.error(f'Cannot find result info in gsheet: {sr.id}')
+                    logger.error(f'Cannot find result info in gsheet: {sr.id}. {sr.result} - {sr.date}; {sr.player_a_s} - {sr.player_b_s}; {score} - {date}')
                     sr.deletion_marker = True
                     sr.save()
 
@@ -193,7 +204,7 @@ class ResultsSheet:
                     scores=score,
                     scores_s=score_s,
                     confirmed=True,
-                    level_change=new_record[4],
+                    level_change=new_record[4] if new_record[4] != '-' else None,
                     date=nr_date,
                     result=RESULT.A_WINS
                 )
@@ -238,16 +249,21 @@ class ResultsSheet:
             # logger.warning('----------------------------')
             # logger.warning(f'{date}, {alternative_date}, {sr.player_a_s}, {sr.player_b_s}')
             for fm in all_canceled_matches:
-                is_ignored = fm[2].find('игнор') != -1 or fm[2].find('проігнор') != -1
-                is_dismissed = fm[2].find('повторн') != -1 or fm[2].find('відмов') != -1
+                is_ignored = fm[2].find('игнор') != -1 or fm[2].find('проігнор') != -1 \
+                             or fm[2].find(get_translation_for('gsheet_technical_win_ignored_str')) != -1
+                is_dismissed = fm[2].find('повторн') != -1 or fm[2].find('відмов') != -1 \
+                               or fm[2].find(get_translation_for('gsheet_technical_win_dismissed_str')) != -1
                 # logger.warning(f'Is_ignore: {is_ignored} - {sr.result==RESULT.IGNORED}, is_dismissed: {is_dismissed} - {sr.result==RESULT.DISMISSED}')
                 # logger.warning(fm)
                 # logger.warning(f'{fm[0] == date} | {fm[0] == alternative_date} | {fm[3] == sr.player_a_s} | {fm[1] == sr.player_b_s}')
                 # logger.warning(f'{(is_dismissed and sr.result == RESULT.DISMISSED) or (is_ignored and sr.result == RESULT.IGNORED)}')
 
+                winner = sr.player_a_s
+                loser = sr.player_b_s
+
                 if fm[0] in (date, alternative_date) and \
-                        fm[3] == sr.player_a_s and \
-                        fm[1] == sr.player_b_s and \
+                        fm[3] == winner and \
+                        fm[1] == loser and \
                         ((is_dismissed and sr.result == RESULT.DISMISSED) or (is_ignored and sr.result == RESULT.IGNORED)):
                     found = True
                     all_canceled_matches.remove(fm)
@@ -257,7 +273,8 @@ class ResultsSheet:
                     logger.error(f'Again cannot find result (canceled) info in gsheet: {sr.id}. Deleting')
                     sr.delete()
                 else:
-                    logger.error(f'Cannot find result (canceled) info in gsheet: {sr.id}')
+                    logger.error(
+                        f'Cannot find result (canceled) info in gsheet: {sr.id}. {sr.result} - {sr.date}; {sr.player_a_s} - {sr.player_b_s}; {date}')
                     sr.deletion_marker = True
                     sr.save()
             else:

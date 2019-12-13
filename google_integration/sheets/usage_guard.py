@@ -1,4 +1,5 @@
 from datetime import datetime
+from logger_settings import logger
 
 
 class UsageGuard:
@@ -41,10 +42,14 @@ class UsageGuard:
     def account_forced_get(self):
         self.__selfcheck()
         self.__get_limits -= 1
+        if self.__get_limits <= 10:
+            logger.warning('Running out of get limit')
 
     def account_forced_update(self):
         self.__selfcheck()
         self.__update_limits -= 1
+        if self.__update_limits <= 10:
+            logger.warning('Running out of update limit')
 
 
 guard = UsageGuard()

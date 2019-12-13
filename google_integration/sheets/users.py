@@ -15,7 +15,7 @@ class UsersSheet:
             f'{cfg.spreadsheet_users_sheet}!A2:H'
         )
         if values is None:
-            return None
+            return []
         values = values.get('values', [])
         return values
 
@@ -124,6 +124,34 @@ class UsersSheet:
             logger.exception('Exception occurred while updating competitor status in gsheet')
 
     @staticmethod
+    def update_competitor_performance_from_table(competitor: Competitor, row=None):
+        try:
+            if row is None:
+                data = UsersSheet.get_all_users()
+                for row_number, row_data in enumerate(data, 2):
+                    if row_data[0] == competitor.legacy_number and row_data[1] == competitor.name:
+                        row = row_number
+                        competitor.performance = to_int(row_data[7])
+                        competitor.save()
+                        break
+                if row is None:
+                    logger.error(f'Cannot get new performance for competitor: {competitor} - cannot found record in gsheet')
+                return
+            cfg = get_config()
+            new_perf = retrieve_data(
+                cfg.spreadsheet_id,
+                f'{cfg.spreadsheet_users_sheet}!H{row}'
+            )
+            new_perf = to_int(new_perf, None)
+            if new_perf is None:
+                logger.error(f'Cannot get new performance for competitor: {competitor}')
+                return
+            competitor.performance = new_perf
+            competitor.save()
+        except:
+            logger.exception(f'Error occurred while updating performance for competitor: {competitor}')
+
+    @staticmethod
     def update_competitor_table_record(competitor: Competitor, all_data=None):
         try:
             cfg = get_config()
@@ -148,6 +176,10 @@ class UsersSheet:
                             ]
                         ]
                     )
+                    # UsersSheet.update_competitor_performance_from_table(
+                    #     competitor,
+                    #     row_number
+                    # )
                     updated = True
                     break
             if not updated:

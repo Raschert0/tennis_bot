@@ -26,7 +26,7 @@ class LogsSheet:
             f'{cfg.spreadsheet_logs_sheet}!A2:C'
         )
         if values is None:
-            return None
+            return []
         values = values.get('values', [])
         return values
 

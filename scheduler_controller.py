@@ -61,30 +61,48 @@ def __scheduler_run(cease_run, interval=60):
                             relevant_user,
                             reply_markup=get_menu_keyboard(status=competitor.status)
                         )
+                else:
+                    competitor.vacation_started_at = now
+                    competitor.used_vacation_time = delta
+                    competitor.save()
             else:
                 logger.error(f"Cannot find vacation_started_at for competitor {competitor.name} (on vacation). Saved current time")
                 competitor.vacation_started_at = now
                 competitor.save()
 
     def daily_task_check():
-        config = get_config_document()
-        n = datetime.now(tz=tz)
-        if config.last_daily_check:
-            lc = mongo_time_to_local(config.last_daily_check, tz)
-            if (n - lc) > timedelta(hours=3):
-                if n.hour in (8, 9, 10):
+        try:
+            config = get_config_document()
+            n = datetime.now(tz=tz)
+            if config.latest_daily_check:
+                lc = mongo_time_to_local(config.latest_daily_check, tz)
+                if (n - lc) > timedelta(hours=1):
+                    if 8 <= n.hour <= 21:
+                        logger.debug(f'Performing vacation check task at {n}')
+                        config.latest_daily_check = n
+                        config.save()
+                        daily_task()
+
+            else:
+                config.latest_daily_check = n
+                config.save()
+
+            config.reload()
+            if config.latest_monthly_check:
+                lc = mongo_time_to_local(config.latest_monthly_check, tz)
+                if (n - lc) > timedelta(days=1):
                     if n.day == 1:
-                        logger.info(f'Performing monthly task at {n}')
+                        hr_logger.info(f'Performing monthly task at {n}')
+                        config.latest_monthly_check = n
+                        config.save()
                         monthly_task()
-
-                    logger.info(f'Performing daily task at {n}')
-                    config.last_daily_check = n
-                    config.save()
-                    daily_task()
-
-        else:
-            config.last_daily_check = n
-            config.save()
+            else:
+                config.latest_monthly_check = n
+                config.save()
+        except KeyboardInterrupt:
+            return
+        except:
+            logger.exception('Exception occurred while performing daily check')
 
     def check_challenges():
         bconfig = get_config()
@@ -303,7 +321,12 @@ def __scheduler_run(cease_run, interval=60):
                 logger.exception(f'Exception occurred while checking challenges in progress (for competitor {competitor.name} {competitor.legacy_number})')
 
     def check_results():
-        ResultsSheet.synchronize_results(timedelta(days=1))
+        try:
+            ResultsSheet.synchronize_results(timedelta(days=1))
+        except KeyboardInterrupt:
+            return
+        except:
+            logger.exception('Exception occurred while checking results')
 
     schedule.logger.setLevel(logging.WARNING)
     schedule.every(5).minutes.do(daily_task_check)

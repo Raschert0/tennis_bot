@@ -61,7 +61,8 @@ class Config(db.Document):
     #
     # group_chat_id = db.IntField()
 
-    last_daily_check = db.DateTimeField(default=datetime.utcnow())
+    latest_daily_check = db.DateTimeField(default=datetime.utcnow())
+    latest_monthly_check = db.DateTimeField(default=datetime.utcnow())
 
 
 class Competitor(db.Document):
@@ -180,6 +181,9 @@ class Competitor(db.Document):
         COMPETITOR_STATUS.INJUIRY: 'Injuiry',
         COMPETITOR_STATUS.INACTIVE: 'Inactive'
     }
+
+    def __repr__(self):
+        return f'Competitor ({self.name} {self.status} {self.id} )'
 
 
 class Result(db.Document):

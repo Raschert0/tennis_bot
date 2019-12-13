@@ -148,7 +148,7 @@ class ConfigView(ModelView):
     create_modal = True
     edit_modal = True
 
-    form_excluded_columns = ['config_id', 'last_daily_check']
+    form_excluded_columns = ['config_id', 'latest_daily_check']
     can_delete = False
     can_create = False
 
